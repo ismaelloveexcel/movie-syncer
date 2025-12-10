@@ -119,21 +119,21 @@ export default function Home() {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 rounded-full border border-red-500/30"
+                className="absolute inset-0 rounded-full border border-green-500/30"
               />
               <motion.div
                 animate={{ rotate: -360 }}
                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-2 rounded-full border border-red-600/40"
+                className="absolute inset-2 rounded-full border border-green-600/40"
               />
               
               {/* Core with scanning effect */}
-              <div className="absolute inset-4 rounded-full bg-black/80 border border-red-500/50 overflow-hidden">
+              <div className="absolute inset-4 rounded-full bg-black/80 border border-green-500/50 overflow-hidden">
                 {/* Scan line */}
                 <motion.div
                   animate={{ y: [-50, 80, -50] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-red-500/30 to-transparent"
+                  className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-green-500/30 to-transparent"
                 />
                 
                 {/* Center icon */}
@@ -142,7 +142,7 @@ export default function Home() {
                     animate={{ opacity: [0.5, 1, 0.5] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <circle cx="12" cy="12" r="3" />
                       <path d="M12 1v4M12 19v4M1 12h4M19 12h4" />
                       <path d="M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
@@ -152,10 +152,10 @@ export default function Home() {
               </div>
               
               {/* Corner brackets */}
-              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-red-500" />
-              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-red-500" />
-              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-red-500" />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-red-500" />
+              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-green-500" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-green-500" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-green-500" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-green-500" />
             </div>
             
             {/* Status indicator */}
@@ -164,8 +164,8 @@ export default function Home() {
               transition={{ duration: 1.5, repeat: Infinity }}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span className="text-[10px] font-mono text-red-500 tracking-wider">SCANNING</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span className="text-[10px] font-mono text-green-500 tracking-wider">SCANNING</span>
             </motion.div>
           </motion.div>
           
@@ -178,7 +178,7 @@ export default function Home() {
               CLASSIFIED
             </h1>
             <motion.p 
-              className="text-red-500/80 text-sm font-mono tracking-[0.2em] uppercase"
+              className="text-green-500/80 text-sm font-mono tracking-[0.2em] uppercase"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
@@ -193,7 +193,7 @@ export default function Home() {
             className="mt-5"
           >
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded border border-white/10 bg-white/5">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-gray-300 text-sm font-mono tracking-wide">THE TROUBLESOME TWO</span>
             </div>
           </motion.div>
@@ -204,11 +204,11 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="bg-black/60 backdrop-blur-xl border-red-500/20 shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 via-transparent to-transparent" />
+          <Card className="bg-black/60 backdrop-blur-xl border-green-500/20 shadow-2xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 via-transparent to-transparent" />
             
             <CardHeader className="border-b border-white/10 pb-5 relative">
-              <Lock className="absolute top-4 right-4 w-4 h-4 text-red-500/50" />
+              <Lock className="absolute top-4 right-4 w-4 h-4 text-green-500/50" />
               <CardTitle className="text-lg text-center text-white font-semibold tracking-wide">
                 SECURE ACCESS
               </CardTitle>
@@ -227,7 +227,7 @@ export default function Home() {
                     placeholder="..." 
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-black/50 border-white/10 focus:border-red-500/50 focus:ring-red-500/20 text-white placeholder:text-gray-600 h-12 font-mono"
+                    className="bg-black/50 border-white/10 focus:border-green-500/50 focus:ring-green-500/20 text-white placeholder:text-gray-600 h-12 font-mono"
                     data-testid="input-username"
                   />
                 </div>
@@ -237,7 +237,7 @@ export default function Home() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="flex items-center gap-2 text-xs text-red-400 ml-1 font-mono"
+                      className="flex items-center gap-2 text-xs text-green-400 ml-1 font-mono"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
                       ACCESS GRANTED — {username.toUpperCase()}
@@ -257,7 +257,7 @@ export default function Home() {
                     <div className="space-y-3">
                       <Label className="text-gray-400 text-xs font-mono ml-1 uppercase tracking-wider">Session ID</Label>
                       <div className="flex items-center bg-black/50 rounded border border-white/10 p-1">
-                        <div className="flex-1 font-mono text-lg font-semibold text-center text-red-400 py-2 tracking-widest uppercase">
+                        <div className="flex-1 font-mono text-lg font-semibold text-center text-green-400 py-2 tracking-widest uppercase">
                           {roomId}
                         </div>
                         <Button 
@@ -270,7 +270,7 @@ export default function Home() {
                         </Button>
                       </div>
                       <Button 
-                        className="w-full bg-red-600 hover:bg-red-500 transition-colors text-white font-mono tracking-wide h-12"
+                        className="w-full bg-green-600 hover:bg-green-500 transition-colors text-white font-mono tracking-wide h-12"
                         onClick={() => handleJoin(roomId)}
                       >
                         INITIALIZE SESSION
@@ -291,12 +291,12 @@ export default function Home() {
                         placeholder="ENTER SESSION ID..." 
                         value={joinId}
                         onChange={(e) => setJoinId(e.target.value)}
-                        className="bg-black/50 border-white/10 focus:border-red-500/50 text-white placeholder:text-gray-600 h-12 font-mono uppercase"
+                        className="bg-black/50 border-white/10 focus:border-green-500/50 text-white placeholder:text-gray-600 h-12 font-mono uppercase"
                       />
                       <Button 
                         variant="outline" 
                         size="icon"
-                        className="h-12 w-12 border-white/10 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50"
+                        className="h-12 w-12 border-white/10 hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/50"
                         onClick={() => handleJoin(joinId)}
                         disabled={!joinId}
                       >

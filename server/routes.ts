@@ -156,6 +156,27 @@ export async function registerRoutes(
       io.to(targetId).emit('voice-ice-candidate', socket.id, candidate);
     });
 
+    // Screen sharing signaling
+    socket.on('screen-offer', (roomId: string, data: any) => {
+      socket.to(roomId).emit('screen-offer', data);
+    });
+
+    socket.on('screen-answer', (roomId: string, data: any) => {
+      socket.to(roomId).emit('screen-answer', data);
+    });
+
+    socket.on('screen-ice-candidate', (roomId: string, data: any) => {
+      socket.to(roomId).emit('screen-ice-candidate', data);
+    });
+
+    socket.on('screen-started', (roomId: string, data: any) => {
+      socket.to(roomId).emit('screen-started', data);
+    });
+
+    socket.on('screen-stopped', (roomId: string) => {
+      socket.to(roomId).emit('screen-stopped');
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);

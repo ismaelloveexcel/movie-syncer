@@ -10,10 +10,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Play, Pause, SkipForward, SkipBack, Users, MessageSquare, 
   Film, Link as LinkIcon, Send, LogOut, ExternalLink, Plug, Timer, Crosshair,
-  MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff
+  MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
+import { useScreenShare } from "@/hooks/use-screen-share";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -58,6 +59,17 @@ export default function Room() {
     stopVoice,
     toggleMute,
   } = useVoiceChat(roomId, username);
+
+  // Screen sharing
+  const {
+    isSharing,
+    isViewing,
+    sharerName,
+    localVideoRef,
+    remoteVideoRef,
+    startScreenShare,
+    stopScreenShare,
+  } = useScreenShare(roomId, username);
 
   useEffect(() => {
     if (!roomId) return;
@@ -234,6 +246,41 @@ export default function Room() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Screen Share Controls */}
+          <div className="flex items-center gap-2">
+            {isSharing ? (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={stopScreenShare}
+                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                data-testid="button-stop-screen"
+              >
+                <MonitorOff className="w-4 h-4 mr-2" />
+                Stop Share
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={startScreenShare}
+                className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                data-testid="button-start-screen"
+                disabled={isViewing}
+              >
+                <Monitor className="w-4 h-4 mr-2" />
+                Share Screen
+              </Button>
+            )}
+            {isViewing && sharerName && (
+              <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
+                Watching {sharerName}
+              </Badge>
+            )}
+          </div>
+
+          <div className="h-4 w-px bg-white/10 mx-1" />
+
           {/* Voice Chat Controls */}
           <div className="flex items-center gap-2">
             {isVoiceActive ? (
@@ -325,6 +372,40 @@ export default function Room() {
               </TabsList>
             </Tabs>
           </div>
+
+          {/* Screen Share Viewer */}
+          {(isSharing || isViewing) && (
+            <div className="bg-[#141620] border-b border-white/10 p-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="flex items-center gap-3 mb-3">
+                  <Monitor className="w-5 h-5 text-blue-400" />
+                  <span className="font-medium">
+                    {isSharing ? "You're sharing your screen" : `Watching ${sharerName}'s screen`}
+                  </span>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/50">Live</Badge>
+                </div>
+                <div className="bg-black rounded-lg overflow-hidden aspect-video">
+                  {isSharing && (
+                    <video 
+                      ref={localVideoRef}
+                      autoPlay 
+                      muted 
+                      playsInline
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                  {isViewing && (
+                    <video 
+                      ref={remoteVideoRef}
+                      autoPlay 
+                      playsInline
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Player / Content */}
           <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black/50">

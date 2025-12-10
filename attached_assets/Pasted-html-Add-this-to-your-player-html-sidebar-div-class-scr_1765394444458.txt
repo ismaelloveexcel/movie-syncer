@@ -1,0 +1,345 @@
+html
+<!-- Add this to your player.html sidebar -->
+<div class="screen-share-panel" style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+    <h4 style="color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-desktop"></i> Screen Sharing
+    </h4>
+    
+    <div class="screen-controls">
+        <button id="startScreenShare" class="screen-btn" style="background: #667eea; color: white; border: none; padding: 12px; border-radius: 5px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px;">
+            <i class="fas fa-share-alt"></i> Share My Screen
+        </button>
+        
+        <button id="stopScreenShare" class="screen-btn" style="background: #f56565; color: white; border: none; padding: 12px; border-radius: 5px; width: 100%; cursor: pointer; font-weight: bold; display: none;">
+            <i class="fas fa-stop"></i> Stop Sharing
+        </button>
+    </div>
+    
+    <div class="screen-status" style="padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px; margin-bottom: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="screen-status-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #f56565;"></div>
+            <span id="screenStatusText" style="color: #aaa;">Ready to share</span>
+        </div>
+    </div>
+    
+    <!-- Where your nephew sees your screen -->
+    <div class="screen-viewer" id="screenViewer" style="display: none; margin-top: 15px;">
+        <h5 style="color: white; margin-bottom: 10px;">Watching <span id="sharerName">Host</span>'s Screen:</h5>
+        <video id="remoteScreen" autoplay playsinline style="width: 100%; background: black; border-radius: 5px;"></video>
+    </div>
+    
+    <!-- Where YOU see what you're sharing -->
+    <div class="local-preview" id="localPreview" style="display: none; margin-top: 15px;">
+        <h5 style="color: white; margin-bottom: 10px;">You're Sharing:</h5>
+        <video id="localScreen" autoplay muted playsinline style="width: 100%; background: black; border-radius: 5px;"></video>
+    </div>
+</div>
+
+<style>
+.screen-btn {
+    transition: all 0.3s ease;
+}
+
+.screen-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+#remoteScreen, #localScreen {
+    max-height: 300px;
+    object-fit: contain;
+}
+</style>
+Add Screen Sharing JavaScript:
+javascript
+// Screen Sharing Manager
+class ScreenShareManager {
+    constructor(socket, roomId, username) {
+        this.socket = socket;
+        this.roomId = roomId;
+        this.username = username;
+        
+        this.peerConnection = null;
+        this.localStream = null;
+        this.isSharing = false;
+        this.isViewing = false;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.setupSocketListeners();
+    }
+    
+    setupEventListeners() {
+        // Start/stop screen share
+        document.getElementById('startScreenShare').addEventListener('click', () => {
+            this.startScreenShare();
+        });
+        
+        document.getElementById('stopScreenShare').addEventListener('click', () => {
+            this.stopScreenShare();
+        });
+    }
+    
+    setupSocketListeners() {
+        // Screen share signaling
+        this.socket.on('screen-offer', (data) => {
+            this.handleScreenOffer(data);
+        });
+        
+        this.socket.on('screen-answer', (data) => {
+            this.handleScreenAnswer(data);
+        });
+        
+        this.socket.on('screen-ice-candidate', (data) => {
+            this.handleScreenICECandidate(data);
+        });
+        
+        this.socket.on('screen-started', (data) => {
+            this.showScreenViewer(data);
+        });
+        
+        this.socket.on('screen-stopped', () => {
+            this.hideScreenViewer();
+        });
+    }
+    
+    async startScreenShare() {
+        try {
+            // Get screen stream
+            this.localStream = await navigator.mediaDevices.getDisplayMedia({
+                video: {
+                    cursor: "always",
+                    displaySurface: "monitor"
+                },
+                audio: true  // Share system audio too!
+            });
+            
+            // Show local preview
+            const localVideo = document.getElementById('localScreen');
+            localVideo.srcObject = this.localStream;
+            document.getElementById('localPreview').style.display = 'block';
+            
+            // Create peer connection
+            this.createScreenPeerConnection();
+            
+            // Add screen track
+            const screenTrack = this.localStream.getVideoTracks()[0];
+            const audioTrack = this.localStream.getAudioTracks()[0];
+            
+            if (screenTrack) {
+                this.peerConnection.addTrack(screenTrack, this.localStream);
+            }
+            if (audioTrack) {
+                this.peerConnection.addTrack(audioTrack, this.localStream);
+            }
+            
+            // Create and send offer
+            const offer = await this.peerConnection.createOffer();
+            await this.peerConnection.setLocalDescription(offer);
+            
+            // Send offer to all in room
+            this.socket.emit('screen-offer', this.roomId, {
+                offer: offer,
+                username: this.username,
+                type: 'screen'
+            });
+            
+            // Update UI
+            this.updateScreenStatus('Sharing screen...', 'sharing');
+            document.getElementById('startScreenShare').style.display = 'none';
+            document.getElementById('stopScreenShare').style.display = 'block';
+            this.isSharing = true;
+            
+            // Notify others
+            this.socket.emit('screen-started', this.roomId, {
+                username: this.username,
+                timestamp: Date.now()
+            });
+            
+            // Handle when user stops sharing via browser button
+            this.localStream.getVideoTracks()[0].onended = () => {
+                this.stopScreenShare();
+            };
+            
+        } catch (error) {
+            console.error('Error starting screen share:', error);
+            this.updateScreenStatus('Screen share cancelled', 'error');
+        }
+    }
+    
+    createScreenPeerConnection() {
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:global.stun.twilio.com:3478' }
+            ]
+        };
+        
+        this.peerConnection = new RTCPeerConnection(configuration);
+        
+        // Handle ICE candidates
+        this.peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+                this.socket.emit('screen-ice-candidate', this.roomId, {
+                    candidate: event.candidate,
+                    username: this.username
+                });
+            }
+        };
+        
+        // Handle remote stream
+        this.peerConnection.ontrack = (event) => {
+            // This is for the VIEWER (your nephew)
+            const remoteVideo = document.getElementById('remoteScreen');
+            remoteVideo.srcObject = event.streams[0];
+            
+            // Show viewer UI
+            document.getElementById('screenViewer').style.display = 'block';
+            this.isViewing = true;
+        };
+    }
+    
+    async handleScreenOffer(data) {
+        // Only accept if we're not already sharing/viewing
+        if (this.isSharing || this.isViewing) return;
+        
+        try {
+            // Create peer connection
+            this.createScreenPeerConnection();
+            
+            // Set remote description
+            await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+            
+            // Create and send answer
+            const answer = await this.peerConnection.createAnswer();
+            await this.peerConnection.setLocalDescription(answer);
+            
+            this.socket.emit('screen-answer', this.roomId, {
+                answer: answer,
+                username: this.username
+            });
+            
+            // Update UI to show we're viewing
+            document.getElementById('sharerName').textContent = data.username;
+            this.updateScreenStatus(`Watching ${data.username}'s screen`, 'viewing');
+            
+        } catch (error) {
+            console.error('Error handling screen offer:', error);
+        }
+    }
+    
+    async handleScreenAnswer(data) {
+        if (!this.peerConnection) return;
+        
+        try {
+            await this.peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } catch (error) {
+            console.error('Error handling screen answer:', error);
+        }
+    }
+    
+    async handleScreenICECandidate(data) {
+        if (!this.peerConnection) return;
+        
+        try {
+            await this.peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } catch (error) {
+            console.error('Error adding ICE candidate:', error);
+        }
+    }
+    
+    showScreenViewer(data) {
+        // This is called when someone ELSE starts sharing
+        if (this.isSharing) return; // Don't show if we're sharing
+        
+        document.getElementById('sharerName').textContent = data.username;
+        document.getElementById('screenViewer').style.display = 'block';
+        this.updateScreenStatus(`${data.username} is sharing screen`, 'viewing');
+    }
+    
+    hideScreenViewer() {
+        document.getElementById('screenViewer').style.display = 'none';
+        const remoteVideo = document.getElementById('remoteScreen');
+        if (remoteVideo.srcObject) {
+            remoteVideo.srcObject.getTracks().forEach(track => track.stop());
+            remoteVideo.srcObject = null;
+        }
+        this.isViewing = false;
+        this.updateScreenStatus('Screen share ended', 'ready');
+    }
+    
+    stopScreenShare() {
+        // Close peer connection
+        if (this.peerConnection) {
+            this.peerConnection.close();
+            this.peerConnection = null;
+        }
+        
+        // Stop local stream
+        if (this.localStream) {
+            this.localStream.getTracks().forEach(track => track.stop());
+            this.localStream = null;
+        }
+        
+        // Update UI
+        this.updateScreenStatus('Screen sharing stopped', 'ready');
+        document.getElementById('startScreenShare').style.display = 'block';
+        document.getElementById('stopScreenShare').style.display = 'none';
+        document.getElementById('localPreview').style.display = 'none';
+        
+        this.isSharing = false;
+        
+        // Notify others
+        this.socket.emit('screen-stopped', this.roomId);
+    }
+    
+    updateScreenStatus(message, status) {
+        const statusText = document.getElementById('screenStatusText');
+        const statusDot = document.querySelector('.screen-status-dot');
+        
+        if (statusText) statusText.textContent = message;
+        if (statusDot) {
+            statusDot.style.background = {
+                'ready': '#667eea',
+                'sharing': '#48bb78',
+                'viewing': '#ed8936',
+                'error': '#f56565'
+            }[status] || '#667eea';
+        }
+    }
+}
+
+// Initialize screen sharing after socket connection
+socket.on('connect', () => {
+    // ... your existing code ...
+    
+    // Initialize screen sharing manager
+    window.screenShare = new ScreenShareManager(socket, roomId, username);
+});
+Update Server Code for Screen Sharing:
+Add to your index.js:
+
+javascript
+// Screen sharing signaling
+socket.on('screen-offer', (roomId, data) => {
+    socket.to(roomId).emit('screen-offer', data);
+});
+
+socket.on('screen-answer', (roomId, data) => {
+    socket.to(roomId).emit('screen-answer', data);
+});
+
+socket.on('screen-ice-candidate', (roomId, data) => {
+    socket.to(roomId).emit('screen-ice-candidate', data);
+});
+
+socket.on('screen-started', (roomId, data) => {
+    socket.to(roomId).emit('screen-started', data);
+});
+
+socket.on('screen-stopped', (roomId) => {
+    socket.to(roomId).emit('screen-stopped');
+});

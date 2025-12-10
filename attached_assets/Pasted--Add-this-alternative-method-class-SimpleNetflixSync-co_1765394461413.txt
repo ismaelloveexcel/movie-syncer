@@ -1,0 +1,59 @@
+// Add this alternative method
+class SimpleNetflixSync {
+    constructor() {
+        this.setupSimpleSync();
+    }
+    
+    setupSimpleSync() {
+        // Add instructions
+        const instructions = `
+        <div style="padding: 15px; background: rgba(229,9,20,0.1); border-radius: 10px; margin: 15px 0;">
+            <h4 style="color: #E50914;">Simple Netflix Sync Instructions:</h4>
+            <ol style="margin: 10px 0 0 20px; color: white;">
+                <li>Both open Netflix in separate tabs</li>
+                <li>Search for the same movie/show</li>
+                <li>Click "Start 3-2-1 Sync" button</li>
+                <li>Press play together on "GO!"</li>
+                <li>Use app controls if you get out of sync</li>
+            </ol>
+            <div style="margin-top: 15px; text-align: center;">
+                <button id="syncNow" style="background: #E50914; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                    Start 3-2-1 Sync Now
+                </button>
+            </div>
+        </div>
+        `;
+        
+        // Add to Netflix panel
+        const netflixPanel = document.getElementById('netflixPanel');
+        if (netflixPanel) {
+            netflixPanel.insertAdjacentHTML('beforeend', instructions);
+            
+            document.getElementById('syncNow').addEventListener('click', () => {
+                this.startSimpleSync();
+            });
+        }
+    }
+    
+    startSimpleSync() {
+        let count = 3;
+        const countdown = setInterval(() => {
+            // Show countdown
+            alert(`Starting in ${count}...`);
+            
+            if (count === 0) {
+                clearInterval(countdown);
+                alert('GO! Press PLAY on Netflix now!');
+                
+                // Send sync command to partner
+                if (socket) {
+                    socket.emit('simple-sync', roomId, 'play');
+                }
+            }
+            count--;
+        }, 1000);
+    }
+}
+
+// Initialize
+new SimpleNetflixSync();

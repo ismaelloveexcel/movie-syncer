@@ -10,9 +10,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Play, Pause, SkipForward, SkipBack, Users, MessageSquare, 
   Film, Link as LinkIcon, Send, LogOut, ExternalLink, Plug, Timer, Crosshair,
-  MonitorPlay, Globe
+  MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -46,6 +47,17 @@ export default function Room() {
   
   const username = useRef("You").current;
   const chatEndRef = useRef<HTMLDivElement>(null);
+  
+  // Voice chat
+  const {
+    isMuted,
+    isVoiceActive,
+    connectedPeers,
+    error: voiceError,
+    startVoice,
+    stopVoice,
+    toggleMute,
+  } = useVoiceChat(roomId, username);
 
   useEffect(() => {
     if (!roomId) return;
@@ -222,6 +234,51 @@ export default function Room() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Voice Chat Controls */}
+          <div className="flex items-center gap-2">
+            {isVoiceActive ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleMute}
+                  className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                  data-testid="button-toggle-mute"
+                >
+                  {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={stopVoice}
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  data-testid="button-stop-voice"
+                >
+                  <PhoneOff className="w-4 h-4 mr-2" />
+                  End Call
+                </Button>
+                {connectedPeers.length > 0 && (
+                  <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
+                    {connectedPeers.length} connected
+                  </Badge>
+                )}
+              </>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={startVoice}
+                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                data-testid="button-start-voice"
+              >
+                <Phone className="w-4 h-4 mr-2" />
+                Start Voice
+              </Button>
+            )}
+          </div>
+          
+          <div className="h-4 w-px bg-white/10 mx-1" />
+          
           <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
             <Users className="w-4 h-4 text-gray-400" />
             <span className="text-sm font-medium">{users.length} Online</span>

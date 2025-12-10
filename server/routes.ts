@@ -132,6 +132,30 @@ export async function registerRoutes(
       socket.to(roomId).emit('netflix-sync-command', command);
     });
 
+    // Voice chat signaling
+    socket.on('voice-join', (roomId: string, username: string) => {
+      // Notify all other users in the room that this user joined voice
+      socket.to(roomId).emit('voice-user-joined', socket.id, username);
+      console.log(`${username} joined voice chat in room ${roomId}`);
+    });
+
+    socket.on('voice-leave', (roomId: string) => {
+      socket.to(roomId).emit('voice-user-left', socket.id);
+    });
+
+    socket.on('voice-offer', (roomId: string, targetId: string, offer: any) => {
+      // Send offer directly to the target user
+      io.to(targetId).emit('voice-offer', socket.id, offer);
+    });
+
+    socket.on('voice-answer', (roomId: string, targetId: string, answer: any) => {
+      io.to(targetId).emit('voice-answer', socket.id, answer);
+    });
+
+    socket.on('voice-ice-candidate', (roomId: string, targetId: string, candidate: any) => {
+      io.to(targetId).emit('voice-ice-candidate', socket.id, candidate);
+    });
+
     // Disconnect
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);

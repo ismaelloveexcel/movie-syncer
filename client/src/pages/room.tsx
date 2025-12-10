@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
-import { socket } from "@/lib/mock-socket";
+import { socket, connectSocket } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -50,7 +50,7 @@ export default function Room() {
   useEffect(() => {
     if (!roomId) return;
 
-    socket.connect();
+    connectSocket();
     
     socket.on('connect', () => {
       setConnected(true);

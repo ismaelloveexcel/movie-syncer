@@ -8,3 +8,5 @@ export const ICE_SERVERS: RTCConfiguration = {
 export const STORAGE_KEYS = {
   USERNAME: 'fms_username',
 } as const;
+
+export const ADMIN_NAME = 'Ismael';

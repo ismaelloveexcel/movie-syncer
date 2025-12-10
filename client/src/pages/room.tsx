@@ -15,7 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { useScreenShare } from "@/hooks/use-screen-share";
-import { STORAGE_KEYS } from "@/lib/constants";
+import { STORAGE_KEYS, ADMIN_NAME } from "@/lib/constants";
 import { motion } from "framer-motion";
 
 type Message = {
@@ -50,6 +50,8 @@ export default function Room() {
   const username = useMemo(() => {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || "Guest";
   }, []);
+  
+  const isAdmin = username.toLowerCase() === ADMIN_NAME.toLowerCase();
   
   // Voice chat
   const {
@@ -255,6 +257,11 @@ export default function Room() {
             <Film className="w-5 h-5 text-primary" />
           </div>
           <h1 className="font-display font-bold text-lg hidden md:block">Family Movie Sync</h1>
+          {isAdmin && (
+            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50">
+              Admin
+            </Badge>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -576,29 +583,39 @@ export default function Room() {
           {/* Standard Controls (Visible only in movie mode) */}
           {activeMode === 'movie2watch' && (
             <div className="h-20 bg-[#141620] border-t border-white/10 p-4 flex items-center gap-4">
-              <Button 
-                onClick={togglePlay}
-                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                  isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
-                }`}
-              >
-                {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-1" />}
-              </Button>
+              {isAdmin ? (
+                <>
+                  <Button 
+                    onClick={togglePlay}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                      isPlaying ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
+                    }`}
+                    data-testid="button-play-pause"
+                  >
+                    {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-1" />}
+                  </Button>
 
-              <div className="flex-1 flex gap-2">
-                <div className="relative flex-1">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                  <Input 
-                    value={urlInput}
-                    onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="Paste video URL here..." 
-                    className="pl-9 bg-black/20 border-white/10 focus-visible:ring-primary/50 text-gray-200"
-                  />
+                  <div className="flex-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <Input 
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        placeholder="Paste video URL here..." 
+                        className="pl-9 bg-black/20 border-white/10 focus-visible:ring-primary/50 text-gray-200"
+                        data-testid="input-video-url"
+                      />
+                    </div>
+                    <Button onClick={handleLoadVideo} variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/5" data-testid="button-load-video">
+                      Load
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-gray-500">
+                  <span className="text-sm">Only {ADMIN_NAME} can control the video</span>
                 </div>
-                <Button onClick={handleLoadVideo} variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/5">
-                  Load
-                </Button>
-              </div>
+              )}
             </div>
           )}
         </div>
@@ -651,14 +668,20 @@ export default function Room() {
           </ScrollArea>
 
           <div className="p-4 border-t border-white/10 bg-[#141620]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-gray-500">Chatting as:</span>
+              <span className="text-xs font-bold text-primary">{username}</span>
+              {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
+            </div>
             <form onSubmit={handleSendMessage} className="flex gap-2">
               <Input 
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Say something..." 
                 className="bg-black/20 border-white/10 focus-visible:ring-primary/50 text-gray-200"
+                data-testid="input-chat"
               />
-              <Button type="submit" size="icon" variant="ghost" className="hover:bg-primary/20 hover:text-primary">
+              <Button type="submit" size="icon" variant="ghost" className="hover:bg-primary/20 hover:text-primary" data-testid="button-send-chat">
                 <Send className="w-4 h-4" />
               </Button>
             </form>

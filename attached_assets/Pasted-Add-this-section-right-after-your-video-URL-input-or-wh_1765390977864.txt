@@ -1,0 +1,721 @@
+Add this section right after your video URL input (or wherever you want it):
+
+html
+<!-- Content Type Selector -->
+<div class="content-selector" style="margin: 20px 0; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px;">
+    <div style="display: flex; gap: 0; border-bottom: 2px solid #333; background: rgba(0,0,0,0.5); border-radius: 5px; overflow: hidden;">
+        <button class="tab-btn active" id="tabMovie2watch" data-mode="movie2watch">
+            <i class="fas fa-film"></i> Movie2Watch
+        </button>
+        <button class="tab-btn" id="tabNetflix" data-mode="netflix">
+            <i class="fab fa-netflix"></i> Netflix Sync
+        </button>
+        <button class="tab-btn" id="tabOther" data-mode="other">
+            <i class="fas fa-globe"></i> Other Sites
+        </button>
+    </div>
+</div>
+
+<!-- Netflix Panel (Initially Hidden) -->
+<div id="netflixPanel" style="display: none; background: rgba(229,9,20,0.05); padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid rgba(229,9,20,0.1);">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="color: #E50914; margin: 0;">
+            <i class="fab fa-netflix"></i> NETFLIX Sync Setup
+        </h2>
+        <p style="color: #888; margin: 5px 0 0 0;">Choose your sync method below</p>
+    </div>
+    
+    <div class="sync-methods-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        
+        <!-- Tab Sync Method -->
+        <div class="method-card" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(102,126,234,0.3);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <div style="width: 40px; height: 40px; background: rgba(102,126,234,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-external-link-alt" style="color: #667eea; font-size: 1.2em;"></i>
+                </div>
+                <h3 style="margin: 0; color: white;">Tab Sync</h3>
+            </div>
+            <p style="color: #aaa; margin-bottom: 20px; line-height: 1.5;">
+                Control Netflix in a separate browser tab. Perfect for when you want to use Netflix's full interface.
+            </p>
+            <div style="display: flex; gap: 10px;">
+                <button class="method-btn primary" id="openNetflixTab">
+                    <i class="fas fa-external-link-alt"></i> Open Netflix
+                </button>
+                <button class="method-btn secondary" id="startTabSync">
+                    <i class="fas fa-sync-alt"></i> Start Sync
+                </button>
+            </div>
+            <div class="status" id="tabSyncStatus" style="margin-top: 15px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 5px; font-size: 0.9em; color: #888;">
+                Ready to connect
+            </div>
+        </div>
+        
+        <!-- Teleparty Method -->
+        <div class="method-card" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(229,9,20,0.3);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <div style="width: 40px; height: 40px; background: rgba(229,9,20,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-plug" style="color: #E50914; font-size: 1.2em;"></i>
+                </div>
+                <h3 style="margin: 0; color: white;">Teleparty</h3>
+            </div>
+            <p style="color: #aaa; margin-bottom: 20px; line-height: 1.5;">
+                Official Netflix sync extension. Most reliable method for perfect synchronization.
+            </p>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="method-btn primary" onclick="window.open('https://www.teleparty.com', '_blank')">
+                    <i class="fas fa-download"></i> Get Teleparty
+                </button>
+            </div>
+            <div class="teleparty-input">
+                <input type="text" id="telepartyLink" placeholder="Paste Teleparty link here..." style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 5px; color: white;">
+            </div>
+        </div>
+        
+        <!-- Manual Sync Method -->
+        <div class="method-card" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; border: 1px solid rgba(72,187,120,0.3);">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                <div style="width: 40px; height: 40px; background: rgba(72,187,120,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="color: #48bb78; font-size: 1.2em;"></i>
+                </div>
+                <h3 style="margin: 0; color: white;">Manual Sync</h3>
+            </div>
+            <p style="color: #aaa; margin-bottom: 20px; line-height: 1.5;">
+                3-2-1 countdown method. Simple and works with any device. Great for casual watching.
+            </p>
+            <div style="text-align: center;">
+                <button class="method-btn primary large" id="startCountdown">
+                    <i class="fas fa-play-circle"></i> Start 3-2-1 Sync
+                </button>
+                <div id="countdownDisplay" style="font-size: 3em; font-weight: bold; margin: 15px 0; min-height: 60px; color: #E50914;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sync Controls -->
+    <div class="sync-controls-panel" style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; margin-top: 20px;">
+        <h3 style="color: white; margin: 0 0 15px 0; text-align: center;">
+            <i class="fas fa-sync-alt"></i> Sync Controls
+        </h3>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center;">
+            <button class="sync-control-btn play" data-action="play">
+                <i class="fas fa-play"></i> Play All
+            </button>
+            <button class="sync-control-btn pause" data-action="pause">
+                <i class="fas fa-pause"></i> Pause All
+            </button>
+            <button class="sync-control-btn back" data-action="back10">
+                <i class="fas fa-backward"></i> -10s
+            </button>
+            <button class="sync-control-btn forward" data-action="forward10">
+                <i class="fas fa-forward"></i> +10s
+            </button>
+            
+            <div style="display: flex; gap: 5px; align-items: center; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px;">
+                <span style="color: #aaa; padding: 0 10px;">Time (sec):</span>
+                <input type="number" id="jumpTime" placeholder="0" min="0" style="width: 80px; padding: 8px; background: rgba(255,255,255,0.1); border: none; border-radius: 3px; color: white;">
+                <button class="sync-control-btn jump" id="jumpToBtn">
+                    <i class="fas fa-crosshairs"></i> Jump
+                </button>
+            </div>
+        </div>
+        
+        <div class="sync-status" style="margin-top: 15px; text-align: center;">
+            <div style="display: inline-flex; align-items: center; gap: 10px; padding: 8px 15px; background: rgba(0,0,0,0.3); border-radius: 20px;">
+                <div class="status-dot" id="syncStatusDot" style="background: #f56565;"></div>
+                <span id="syncStatusText" style="color: #aaa;">Waiting to sync...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add these CSS styles -->
+<style>
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    color: #888;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: white;
+}
+
+.tab-btn.active {
+    color: white;
+    border-bottom-color: #667eea;
+    background: rgba(102,126,234,0.1);
+}
+
+.method-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.method-btn.primary {
+    background: #667eea;
+    color: white;
+}
+
+.method-btn.primary:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+}
+
+.method-btn.secondary {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.method-btn.secondary:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+.method-btn.large {
+    padding: 15px 30px;
+    font-size: 1.1em;
+}
+
+.sync-control-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.sync-control-btn.play {
+    background: #48bb78;
+}
+
+.sync-control-btn.pause {
+    background: #f56565;
+}
+
+.sync-control-btn.back, .sync-control-btn.forward {
+    background: #667eea;
+}
+
+.sync-control-btn.jump {
+    background: #ed8936;
+}
+
+.sync-control-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.method-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.method-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+</style>
+2. Add JavaScript for Netflix Integration
+Add this JavaScript to your existing player.html script:
+
+javascript
+// Netflix Sync Manager
+class NetflixSyncManager {
+    constructor(socket, roomId, username) {
+        this.socket = socket;
+        this.roomId = roomId;
+        this.username = username;
+        this.netflixTab = null;
+        this.isSyncing = false;
+        this.countdownInterval = null;
+        
+        this.initialize();
+    }
+    
+    initialize() {
+        // Tab switching
+        this.setupTabSwitching();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Setup socket listeners
+        this.setupSocketListeners();
+    }
+    
+    setupTabSwitching() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const mode = e.target.dataset.mode;
+                this.switchToMode(mode);
+            });
+        });
+    }
+    
+    switchToMode(mode) {
+        // Update active tab
+        document.querySelectorAll('.tab-btn').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.mode === mode);
+        });
+        
+        // Show/hide panels
+        const videoUrlInput = document.getElementById('videoUrl');
+        const netflixPanel = document.getElementById('netflixPanel');
+        
+        if (mode === 'netflix') {
+            netflixPanel.style.display = 'block';
+            videoUrlInput.placeholder = 'Paste Netflix URL or search...';
+            this.updateSyncStatus('Select a sync method above', 'info');
+        } else if (mode === 'movie2watch') {
+            netflixPanel.style.display = 'none';
+            videoUrlInput.placeholder = 'Paste movie URL from movies2watch.cc...';
+        } else {
+            netflixPanel.style.display = 'none';
+            videoUrlInput.placeholder = 'Paste any video URL...';
+        }
+        
+        // Notify partner
+        this.socket.emit('sync-mode-change', this.roomId, mode);
+    }
+    
+    setupEventListeners() {
+        // Open Netflix tab
+        document.getElementById('openNetflixTab').addEventListener('click', () => {
+            this.openNetflixTab();
+        });
+        
+        // Start tab sync
+        document.getElementById('startTabSync').addEventListener('click', () => {
+            this.startTabSync();
+        });
+        
+        // Start manual countdown
+        document.getElementById('startCountdown').addEventListener('click', () => {
+            this.startManualCountdown();
+        });
+        
+        // Sync controls
+        document.querySelectorAll('.sync-control-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const action = e.target.closest('.sync-control-btn').dataset.action;
+                this.sendSyncCommand(action);
+            });
+        });
+        
+        // Jump to time
+        document.getElementById('jumpToBtn').addEventListener('click', () => {
+            const time = parseFloat(document.getElementById('jumpTime').value);
+            if (!isNaN(time)) {
+                this.sendSyncCommand('jump', { time });
+            }
+        });
+        
+        // Teleparty link input
+        document.getElementById('telepartyLink').addEventListener('paste', (e) => {
+            setTimeout(() => {
+                const link = e.target.value;
+                if (link.includes('teleparty')) {
+                    this.shareTelepartyLink(link);
+                }
+            }, 100);
+        });
+    }
+    
+    setupSocketListeners() {
+        // Listen for partner's sync commands
+        this.socket.on('netflix-sync-command', (data) => {
+            this.handleRemoteCommand(data);
+        });
+        
+        // Listen for countdown ticks
+        this.socket.on('netflix-countdown-tick', (count) => {
+            this.showPartnerCountdown(count);
+        });
+        
+        // Listen for mode changes
+        this.socket.on('sync-mode-change', (mode) => {
+            this.switchToMode(mode);
+            addChatMessage(`Partner switched to ${mode} mode`, 'System');
+        });
+        
+        // Listen for teleparty links
+        this.socket.on('teleparty-link', (link) => {
+            this.showTelepartyLink(link);
+        });
+    }
+    
+    openNetflixTab() {
+        this.netflixTab = window.open('https://netflix.com', 'NetflixSync', 'width=1200,height=700');
+        this.updateTabStatus('Netflix tab opened', 'success');
+        
+        // Try to inject controller after a delay
+        setTimeout(() => {
+            this.injectNetflixController();
+        }, 2000);
+    }
+    
+    injectNetflixController() {
+        // This would be the code to inject into Netflix tab
+        const controllerCode = `
+            // Netflix Controller Code
+            console.log('Family Sync Controller Loaded');
+            
+            // Listen for messages from main app
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'netflix-control') {
+                    console.log('Received control:', event.data.command);
+                    // Here you would control Netflix player
+                }
+            });
+            
+            // Send ready signal
+            window.opener.postMessage({ type: 'netflix-ready' }, '*');
+        `;
+        
+        if (this.netflixTab) {
+            try {
+                this.netflixTab.postMessage({ 
+                    type: 'inject-controller',
+                    code: controllerCode 
+                }, '*');
+                this.updateTabStatus('Controller injected', 'success');
+            } catch (e) {
+                this.updateTabStatus('Could not inject controller', 'error');
+            }
+        }
+    }
+    
+    startTabSync() {
+        if (!this.netflixTab || this.netflixTab.closed) {
+            this.updateTabStatus('Please open Netflix tab first', 'error');
+            return;
+        }
+        
+        this.isSyncing = true;
+        this.updateSyncStatus('Tab sync active', 'success');
+        
+        // Start communication
+        this.startTabCommunication();
+        
+        // Notify partner
+        this.socket.emit('send-chat', this.roomId, 
+            `${this.username} started Netflix tab sync`, 'System');
+    }
+    
+    startTabCommunication() {
+        // Use BroadcastChannel for cross-tab communication
+        const channel = new BroadcastChannel('family-sync-channel');
+        
+        channel.onmessage = (event) => {
+            if (event.data.type === 'netflix-status') {
+                this.updateSyncStatus(
+                    `Playing: ${Math.floor(event.data.time)}s`,
+                    event.data.playing ? 'playing' : 'paused'
+                );
+            }
+        };
+        
+        // Send initialization
+        channel.postMessage({
+            type: 'init',
+            roomId: this.roomId,
+            username: this.username
+        });
+    }
+    
+    startManualCountdown() {
+        if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+        }
+        
+        let count = 3;
+        const display = document.getElementById('countdownDisplay');
+        
+        // Show initial count
+        display.textContent = count;
+        display.style.color = '#f56565';
+        
+        this.countdownInterval = setInterval(() => {
+            count--;
+            
+            if (count > 0) {
+                display.textContent = count;
+                display.style.color = count <= 1 ? '#48bb78' : '#f56565';
+                
+                // Send tick to partner
+                this.socket.emit('netflix-countdown-tick', this.roomId, count);
+                
+            } else {
+                display.textContent = 'GO!';
+                display.style.color = '#48bb78';
+                
+                // Send play command
+                this.sendSyncCommand('play');
+                
+                // Clear display after 2 seconds
+                setTimeout(() => {
+                    display.textContent = '';
+                }, 2000);
+                
+                clearInterval(this.countdownInterval);
+                this.countdownInterval = null;
+            }
+        }, 1000);
+    }
+    
+    sendSyncCommand(action, data = {}) {
+        const command = {
+            type: 'netflix-sync',
+            action: action,
+            sender: this.username,
+            timestamp: Date.now(),
+            roomId: this.roomId,
+            ...data
+        };
+        
+        // Send to partner
+        this.socket.emit('netflix-sync-command', this.roomId, command);
+        
+        // Send to Netflix tab if open
+        if (this.netflixTab && !this.netflixTab.closed) {
+            try {
+                this.netflixTab.postMessage({
+                    type: 'netflix-control',
+                    command: command
+                }, '*');
+            } catch (e) {
+                console.log('Cannot send to Netflix tab');
+            }
+        }
+        
+        // Update chat
+        const actionText = this.getActionText(action, data);
+        addChatMessage(`${actionText}`, this.username);
+        
+        // Update status
+        this.updateSyncStatus(`Sent: ${actionText}`, 'success');
+    }
+    
+    handleRemoteCommand(data) {
+        const actionText = this.getActionText(data.action, data);
+        
+        // Show notification
+        this.showNotification(`${data.sender}: ${actionText}`);
+        
+        // Update status
+        this.updateSyncStatus(`Received: ${actionText}`, 'info');
+        
+        // Execute command locally if needed
+        if (data.action === 'play' || data.action === 'pause') {
+            // You could add local video control here
+        }
+    }
+    
+    showPartnerCountdown(count) {
+        const display = document.getElementById('countdownDisplay');
+        if (display) {
+            if (count > 0) {
+                display.textContent = count;
+                display.style.color = count <= 1 ? '#48bb78' : '#f56565';
+            } else {
+                display.textContent = 'GO!';
+                display.style.color = '#48bb78';
+                setTimeout(() => {
+                    display.textContent = '';
+                }, 2000);
+            }
+        }
+    }
+    
+    shareTelepartyLink(link) {
+        this.socket.emit('teleparty-link', this.roomId, link);
+        addChatMessage('Shared Teleparty link', this.username);
+    }
+    
+    showTelepartyLink(link) {
+        const input = document.getElementById('telepartyLink');
+        input.value = link;
+        input.style.border = '2px solid #48bb78';
+        
+        setTimeout(() => {
+            input.style.border = '1px solid rgba(255,255,255,0.1)';
+        }, 2000);
+        
+        addChatMessage('Partner shared a Teleparty link', 'System');
+    }
+    
+    updateTabStatus(message, type = 'info') {
+        const statusEl = document.getElementById('tabSyncStatus');
+        if (statusEl) {
+            statusEl.textContent = message;
+            statusEl.style.color = {
+                'success': '#48bb78',
+                'error': '#f56565',
+                'info': '#667eea'
+            }[type] || '#888';
+        }
+    }
+    
+    updateSyncStatus(message, type = 'info') {
+        const textEl = document.getElementById('syncStatusText');
+        const dotEl = document.getElementById('syncStatusDot');
+        
+        if (textEl) textEl.textContent = message;
+        if (dotEl) {
+            dotEl.style.background = {
+                'success': '#48bb78',
+                'error': '#f56565',
+                'info': '#667eea',
+                'playing': '#E50914',
+                'paused': '#f56565'
+            }[type] || '#667eea';
+        }
+    }
+    
+    showNotification(message) {
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+    }
+    
+    getActionText(action, data) {
+        const texts = {
+            'play': '▶️ Play',
+            'pause': '⏸️ Pause',
+            'back10': '⏪ Back 10s',
+            'forward10': '⏩ Forward 10s',
+            'jump': `⏩ Jump to ${data.time || 0}s`
+        };
+        return texts[action] || action;
+    }
+}
+
+// Add this to your existing socket.io initialization
+socket.on('connect', () => {
+    // ... your existing initialization code ...
+    
+    // Initialize Netflix Sync Manager
+    window.netflixSync = new NetflixSyncManager(socket, roomId, username);
+    
+    // Auto-switch to Netflix mode if URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'netflix') {
+        setTimeout(() => {
+            document.getElementById('tabNetflix').click();
+        }, 500);
+    }
+});
+3. Update Server (index.js)
+Add these handlers to your existing server code:
+
+javascript
+// Netflix sync handlers
+socket.on('netflix-sync-command', (roomId, command) => {
+    socket.to(roomId).emit('netflix-sync-command', command);
+    console.log(`Netflix command in ${roomId}:`, command.action);
+});
+
+socket.on('netflix-countdown-tick', (roomId, count) => {
+    socket.to(roomId).emit('netflix-countdown-tick', count);
+});
+
+socket.on('sync-mode-change', (roomId, mode) => {
+    socket.to(roomId).emit('sync-mode-change', mode);
+    console.log(`Mode change in ${roomId}:`, mode);
+});
+
+socket.on('teleparty-link', (roomId, link) => {
+    socket.to(roomId).emit('teleparty-link', link);
+});
+
+// Track active Netflix sessions
+const netflixSessions = {};
+
+socket.on('netflix-session-start', (roomId, data) => {
+    netflixSessions[roomId] = {
+        ...data,
+        users: [socket.id],
+        startedAt: Date.now()
+    };
+});
+
+socket.on('netflix-session-join', (roomId) => {
+    if (netflixSessions[roomId]) {
+        netflixSessions[roomId].users.push(socket.id);
+        socket.emit('netflix-session-state', netflixSessions[roomId]);
+    }
+});
+4. CSS Animations
+Add these animations to your existing CSS:
+
+css
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.method-btn:hover {
+    animation: pulse 0.3s ease;
+}
+
+.tab-btn.active {
+    animation: slideIn 0.3s ease;
+}

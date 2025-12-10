@@ -669,8 +669,8 @@ export default function Room() {
 
           <div className="p-4 border-t border-white/10 bg-[#141620]">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-gray-500">Chatting as:</span>
-              <span className="text-xs font-bold text-primary">{username}</span>
+              <span className="text-xs text-gray-400">Chatting as:</span>
+              <span className="text-xs font-bold text-purple-400">{username}</span>
               {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
             </div>
             <form onSubmit={handleSendMessage} className="flex gap-2">

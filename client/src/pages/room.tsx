@@ -142,8 +142,24 @@ export default function Room() {
 
   const handleLoadVideo = () => {
     if (!urlInput) return;
-    setVideoUrl(urlInput);
-    socket.emit('change-video', roomId, urlInput);
+
+    let finalUrl = urlInput;
+    
+    // Auto-convert standard YouTube watch URLs to embed URLs
+    if (finalUrl.includes('youtube.com/watch?v=')) {
+      const videoId = finalUrl.split('v=')[1]?.split('&')[0];
+      if (videoId) {
+        finalUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    } else if (finalUrl.includes('youtu.be/')) {
+      const videoId = finalUrl.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) {
+        finalUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+
+    setVideoUrl(finalUrl);
+    socket.emit('change-video', roomId, finalUrl);
     toast({ title: "Video Loaded" });
   };
 
@@ -211,7 +227,8 @@ export default function Room() {
                 <Film className="w-24 h-24 mx-auto mb-4 opacity-20" />
                 <h3 className="text-xl font-medium text-gray-400 mb-2">No Video Loaded</h3>
                 <p className="max-w-md mx-auto text-sm opacity-60">
-                  Paste a URL below to start watching together. Try a YouTube embed link or similar.
+                  Paste any embeddable URL below (YouTube, Vimeo, etc).<br/>
+                  We'll automatically convert standard YouTube links for you.
                 </p>
               </div>
             )}

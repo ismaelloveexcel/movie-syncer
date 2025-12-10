@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Play, Pause, Users, Film, Send, LogOut, Timer, SkipBack, SkipForward,
   MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff,
-  Plug, Crosshair, Link as LinkIcon, MessageSquare
+  Plug, Crosshair, Link as LinkIcon, MessageSquare, Shield, Zap, Sparkles
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
@@ -253,16 +253,25 @@ export default function Room() {
       {/* Header */}
       <header className="h-16 border-b border-cyan-500/20 glass flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-cyan-500 to-purple-500 p-2 rounded-lg glow-cyan">
-            <Film className="w-5 h-5 text-white" />
-          </div>
+          <motion.div 
+            className="bg-gradient-to-br from-cyan-500 to-purple-500 p-2 rounded-lg glow-cyan"
+            animate={{ rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          >
+            <Shield className="w-5 h-5 text-white" />
+          </motion.div>
           <h1 className="font-display font-bold text-lg hidden md:block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-            Family Movie Sync
+            The Secret Hideout
           </h1>
           {isAdmin && (
-            <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/50 glow-cyan animate-pulse-glow">
-              Admin
-            </Badge>
+            <motion.div
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/50 flex items-center gap-1">
+                <Zap className="w-3 h-3" /> Commander
+              </Badge>
+            </motion.div>
           )}
         </div>
 

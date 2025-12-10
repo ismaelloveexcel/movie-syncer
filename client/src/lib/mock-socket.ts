@@ -72,6 +72,13 @@ class MockSocket extends EventEmitter {
       this.broadcastToOthers('video-seeked', args[1]);
     } else if (event === 'change-video') {
       this.broadcastToOthers('video-changed', args[1]);
+    } else if (event === 'sync-mode-change') {
+      // Broadcast mode change
+      this.broadcastToOthers('sync-mode-changed', args[1]);
+    } else if (event === 'netflix-countdown-tick') {
+      this.broadcastToOthers('netflix-countdown-tick', args[1]);
+    } else if (event === 'netflix-sync-command') {
+      this.broadcastToOthers('netflix-sync-command', args[1]);
     }
   }
 

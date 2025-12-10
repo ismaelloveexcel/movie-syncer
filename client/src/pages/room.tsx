@@ -249,16 +249,18 @@ export default function Room() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f111a] text-gray-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-animated-gradient text-gray-100 flex flex-col font-sans grid-pattern">
       {/* Header */}
-      <header className="h-16 border-b border-white/10 bg-[#141620] flex items-center justify-between px-6 sticky top-0 z-50">
+      <header className="h-16 border-b border-cyan-500/20 glass flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-3">
-          <div className="bg-primary/20 p-2 rounded-lg">
-            <Film className="w-5 h-5 text-primary" />
+          <div className="bg-gradient-to-br from-cyan-500 to-purple-500 p-2 rounded-lg glow-cyan">
+            <Film className="w-5 h-5 text-white" />
           </div>
-          <h1 className="font-display font-bold text-lg hidden md:block">Family Movie Sync</h1>
+          <h1 className="font-display font-bold text-lg hidden md:block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            Family Movie Sync
+          </h1>
           {isAdmin && (
-            <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/50">
+            <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/50 glow-cyan animate-pulse-glow">
               Admin
             </Badge>
           )}

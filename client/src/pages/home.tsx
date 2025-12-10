@@ -135,7 +135,7 @@ export default function Home() {
             transition={{ delay: 0.4 }}
           >
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              The Secret Hideout
+              CLASSIFIED MEMBERS ONLY
             </h1>
             <motion.p 
               className="text-purple-300/80 text-sm font-mono tracking-wider"

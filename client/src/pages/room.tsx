@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRoute, useLocation } from "wouter";
 import { socket, connectSocket } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
@@ -6,16 +6,17 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Play, Pause, SkipForward, SkipBack, Users, MessageSquare, 
-  Film, Link as LinkIcon, Send, LogOut, ExternalLink, Plug, Timer, Crosshair,
-  MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff
+  Play, Pause, Users, Film, Send, LogOut, Timer, SkipBack, SkipForward,
+  MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff,
+  Plug, Crosshair, Link as LinkIcon, MessageSquare
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { useScreenShare } from "@/hooks/use-screen-share";
-import { motion, AnimatePresence } from "framer-motion";
+import { STORAGE_KEYS } from "@/lib/constants";
+import { motion } from "framer-motion";
 
 type Message = {
   id: string;
@@ -43,11 +44,12 @@ export default function Room() {
   const [isPlaying, setIsPlaying] = useState(false);
   
   // Netflix specific state
-  const [jumpTime, setJumpTime] = useState("");
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [jumpTime, setJumpTime] = useState("");
   
-  const username = useRef("You").current;
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const username = useMemo(() => {
+    return localStorage.getItem(STORAGE_KEYS.USERNAME) || "Guest";
+  }, []);
   
   // Voice chat
   const {
@@ -143,14 +145,24 @@ export default function Room() {
     });
 
     return () => {
-      // Cleanup
+      socket.off('connect');
+      socket.off('room-state');
+      socket.off('user-joined');
+      socket.off('user-left');
+      socket.off('receive-chat');
+      socket.off('video-played');
+      socket.off('video-paused');
+      socket.off('video-changed');
+      socket.off('sync-mode-changed');
+      socket.off('netflix-countdown-tick');
+      socket.off('netflix-sync-command');
+      socket.disconnect();
     };
   }, [roomId]);
 
   useEffect(() => {
-    if (chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
+    const el = document.getElementById('chat-end');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const addMessage = (msg: Omit<Message, 'id'>) => {
@@ -634,7 +646,7 @@ export default function Room() {
                   )}
                 </motion.div>
               ))}
-              <div ref={chatEndRef} />
+              <div id="chat-end" />
             </div>
           </ScrollArea>
 

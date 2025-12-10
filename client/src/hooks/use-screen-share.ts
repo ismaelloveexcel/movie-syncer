@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { socket } from '@/lib/socket';
-
-const ICE_SERVERS = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-  ],
-};
+import { ICE_SERVERS } from '@/lib/constants';
 
 export function useScreenShare(roomId: string, username: string) {
   const [isSharing, setIsSharing] = useState(false);

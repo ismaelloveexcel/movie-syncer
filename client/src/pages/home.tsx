@@ -5,19 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, ArrowRight, Film, Users } from "lucide-react";
+import { Copy, ArrowRight, Film, Users, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function Home() {
   const [roomId, setRoomId] = useState<string>("");
   const [joinId, setJoinId] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
-    // Generate a random room ID on mount
     const randomId = "family-" + Math.random().toString(36).substring(2, 8);
     setRoomId(randomId);
+    
+    const savedName = localStorage.getItem(STORAGE_KEYS.USERNAME);
+    if (savedName) setUsername(savedName);
   }, []);
 
   const copyRoomId = () => {
@@ -30,6 +34,11 @@ export default function Home() {
 
   const handleJoin = (id: string) => {
     if (!id) return;
+    if (!username.trim()) {
+      toast({ title: "Enter your name", description: "Please enter a name so others know who you are" });
+      return;
+    }
+    localStorage.setItem(STORAGE_KEYS.USERNAME, username.trim());
     setLocation(`/room/${id}`);
   };
 
@@ -79,9 +88,22 @@ export default function Home() {
               Create a new room or join an existing one
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6 space-y-8">
+          <CardContent className="pt-6 space-y-6">
             
-            <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-gray-600 font-medium ml-1 flex items-center gap-2">
+                <User className="w-4 h-4" /> Your Name
+              </Label>
+              <Input 
+                placeholder="Enter your name" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="bg-gray-50 border-gray-200 focus:bg-white transition-colors h-11"
+                data-testid="input-username"
+              />
+            </div>
+            
+            <div className="space-y-2">
               <Label className="text-gray-600 font-medium ml-1">Your New Room ID</Label>
               <div className="relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>

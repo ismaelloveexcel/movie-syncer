@@ -1,18 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { socket } from '@/lib/socket';
+import { ICE_SERVERS } from '@/lib/constants';
 
 interface PeerConnection {
   peerId: string;
   connection: RTCPeerConnection;
-  stream?: MediaStream;
 }
-
-const ICE_SERVERS = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-  ],
-};
 
 export function useVoiceChat(roomId: string, username: string) {
   const [isMuted, setIsMuted] = useState(true);

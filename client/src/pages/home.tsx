@@ -107,110 +107,95 @@ export default function Home() {
         className="max-w-md w-full relative z-10"
       >
         <div className="text-center mb-8">
+          {/* Futuristic Scanner/Portal */}
           <motion.div 
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-green-500 mb-4 shadow-2xl glow-cyan relative p-3"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="relative inline-block mb-6"
           >
+            {/* Outer ring */}
+            <div className="w-32 h-32 relative">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 rounded-full border border-red-500/30"
+              />
+              <motion.div
+                animate={{ rotate: -360 }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-2 rounded-full border border-red-600/40"
+              />
+              
+              {/* Core with scanning effect */}
+              <div className="absolute inset-4 rounded-full bg-black/80 border border-red-500/50 overflow-hidden">
+                {/* Scan line */}
+                <motion.div
+                  animate={{ y: [-50, 80, -50] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-x-0 h-8 bg-gradient-to-b from-transparent via-red-500/30 to-transparent"
+                />
+                
+                {/* Center icon */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <circle cx="12" cy="12" r="3" />
+                      <path d="M12 1v4M12 19v4M1 12h4M19 12h4" />
+                      <path d="M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                    </svg>
+                  </motion.div>
+                </div>
+              </div>
+              
+              {/* Corner brackets */}
+              <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-red-500" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-red-500" />
+              <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-red-500" />
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-red-500" />
+            </div>
+            
+            {/* Status indicator */}
             <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 rounded-2xl border-2 border-dashed border-white/30"
-            />
-            <motion.div
-              animate={{ opacity: [0.9, 1, 0.9] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="bg-white rounded-lg p-2 w-full h-full"
+              animate={{ opacity: [0.3, 1, 0.3] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1"
             >
-              <svg viewBox="0 0 21 21" className="w-full h-full">
-                <rect fill="#000" x="0" y="0" width="7" height="7"/>
-                <rect fill="#fff" x="1" y="1" width="5" height="5"/>
-                <rect fill="#000" x="2" y="2" width="3" height="3"/>
-                <rect fill="#000" x="14" y="0" width="7" height="7"/>
-                <rect fill="#fff" x="15" y="1" width="5" height="5"/>
-                <rect fill="#000" x="16" y="2" width="3" height="3"/>
-                <rect fill="#000" x="0" y="14" width="7" height="7"/>
-                <rect fill="#fff" x="1" y="15" width="5" height="5"/>
-                <rect fill="#000" x="2" y="16" width="3" height="3"/>
-                <rect fill="#000" x="8" y="0" width="1" height="1"/>
-                <rect fill="#000" x="10" y="0" width="1" height="1"/>
-                <rect fill="#000" x="8" y="2" width="1" height="1"/>
-                <rect fill="#000" x="10" y="2" width="2" height="1"/>
-                <rect fill="#000" x="9" y="4" width="1" height="1"/>
-                <rect fill="#000" x="11" y="4" width="2" height="1"/>
-                <rect fill="#000" x="8" y="6" width="2" height="1"/>
-                <rect fill="#000" x="0" y="8" width="1" height="1"/>
-                <rect fill="#000" x="2" y="8" width="2" height="1"/>
-                <rect fill="#000" x="5" y="8" width="1" height="1"/>
-                <rect fill="#000" x="8" y="8" width="1" height="1"/>
-                <rect fill="#000" x="10" y="8" width="3" height="1"/>
-                <rect fill="#000" x="14" y="8" width="2" height="1"/>
-                <rect fill="#000" x="18" y="8" width="1" height="1"/>
-                <rect fill="#000" x="0" y="10" width="1" height="1"/>
-                <rect fill="#000" x="3" y="10" width="2" height="1"/>
-                <rect fill="#000" x="6" y="10" width="1" height="1"/>
-                <rect fill="#000" x="9" y="10" width="1" height="1"/>
-                <rect fill="#000" x="12" y="10" width="1" height="1"/>
-                <rect fill="#000" x="15" y="10" width="2" height="1"/>
-                <rect fill="#000" x="19" y="10" width="2" height="1"/>
-                <rect fill="#000" x="1" y="12" width="1" height="1"/>
-                <rect fill="#000" x="4" y="12" width="2" height="1"/>
-                <rect fill="#000" x="8" y="12" width="1" height="1"/>
-                <rect fill="#000" x="11" y="12" width="2" height="1"/>
-                <rect fill="#000" x="14" y="12" width="1" height="1"/>
-                <rect fill="#000" x="17" y="12" width="1" height="1"/>
-                <rect fill="#000" x="8" y="14" width="2" height="1"/>
-                <rect fill="#000" x="11" y="14" width="1" height="1"/>
-                <rect fill="#000" x="14" y="14" width="3" height="3"/>
-                <rect fill="#000" x="18" y="14" width="3" height="1"/>
-                <rect fill="#000" x="8" y="16" width="1" height="2"/>
-                <rect fill="#000" x="10" y="16" width="2" height="1"/>
-                <rect fill="#000" x="18" y="16" width="1" height="1"/>
-                <rect fill="#000" x="20" y="16" width="1" height="2"/>
-                <rect fill="#000" x="9" y="18" width="1" height="1"/>
-                <rect fill="#000" x="12" y="18" width="1" height="1"/>
-                <rect fill="#000" x="14" y="18" width="2" height="1"/>
-                <rect fill="#000" x="17" y="18" width="2" height="1"/>
-                <rect fill="#000" x="8" y="20" width="3" height="1"/>
-                <rect fill="#000" x="12" y="20" width="1" height="1"/>
-                <rect fill="#000" x="15" y="20" width="1" height="1"/>
-                <rect fill="#000" x="18" y="20" width="3" height="1"/>
-              </svg>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+              <span className="text-[10px] font-mono text-red-500 tracking-wider">SCANNING</span>
             </motion.div>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.5 }}
           >
-            <motion.h1 
-              className="text-4xl md:text-5xl font-display font-bold mb-3 bg-gradient-to-r from-cyan-400 via-emerald-400 to-green-400 bg-clip-text text-transparent"
-              animate={{ scale: [1, 1.02, 1] }}
+            <h1 className="text-4xl md:text-5xl font-display font-black tracking-tight mb-2 text-white">
+              CLASSIFIED
+            </h1>
+            <motion.p 
+              className="text-red-500/80 text-sm font-mono tracking-[0.2em] uppercase"
+              animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              [ CLASSIFIED ]
-            </motion.h1>
-            <p className="text-emerald-300/80 text-lg font-mono tracking-wider">
-              MEMBERS ONLY
-            </p>
+              // AUTHORIZED PERSONNEL ONLY
+            </motion.p>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4"
+            transition={{ delay: 0.7 }}
+            className="mt-5"
           >
-            <motion.div 
-              className="px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-2 justify-center"
-              whileHover={{ scale: 1.05 }}
-              animate={{ boxShadow: ["0 0 0 rgba(16,185,129,0)", "0 0 20px rgba(16,185,129,0.3)", "0 0 0 rgba(16,185,129,0)"] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Zap className="w-4 h-4" /> THE TROUBLESOME TWO
-            </motion.div>
+            <div className="inline-flex items-center gap-3 px-4 py-2 rounded border border-white/10 bg-white/5">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-gray-300 text-sm font-mono tracking-wide">THE TROUBLESOME TWO</span>
+            </div>
           </motion.div>
         </div>
 
@@ -219,62 +204,44 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-dark border-emerald-500/20 shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-emerald-500/5" />
+          <Card className="bg-black/60 backdrop-blur-xl border-red-500/20 shadow-2xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-red-500/5 via-transparent to-transparent" />
             
-            <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border-b border-white/10 pb-6 relative">
-              <motion.div
-                className="absolute top-2 right-2"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <Lock className="w-4 h-4 text-cyan-500/50" />
-              </motion.div>
-              <CardTitle className="text-xl text-center bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                <Film className="w-5 h-5 text-emerald-400" />
-                Access Portal
+            <CardHeader className="border-b border-white/10 pb-5 relative">
+              <Lock className="absolute top-4 right-4 w-4 h-4 text-red-500/50" />
+              <CardTitle className="text-lg text-center text-white font-semibold tracking-wide">
+                SECURE ACCESS
               </CardTitle>
-              <CardDescription className="text-center text-gray-400">
-                Enter your codename to unlock
+              <CardDescription className="text-center text-gray-500 text-xs font-mono">
+                IDENTITY VERIFICATION REQUIRED
               </CardDescription>
             </CardHeader>
             
             <CardContent className="pt-6 space-y-6 relative">
               <div className="space-y-2">
-                <Label className="text-gray-300 font-medium ml-1 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-cyan-400" /> Your Codename
+                <Label className="text-gray-400 text-xs font-mono ml-1 uppercase tracking-wider">
+                  Enter Codename
                 </Label>
                 <div className="relative">
                   <Input 
-                    placeholder="Enter your name..." 
+                    placeholder="..." 
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-white/5 border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400/20 text-white placeholder:text-gray-500 h-11 pr-10"
+                    className="bg-black/50 border-white/10 focus:border-red-500/50 focus:ring-red-500/20 text-white placeholder:text-gray-600 h-12 font-mono"
                     data-testid="input-username"
                   />
-                  <AnimatePresence>
-                    {isKnownMember && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2"
-                      >
-                        <Sparkles className="w-5 h-5 text-yellow-400" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
                 <AnimatePresence>
                   {isKnownMember && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-xs text-emerald-400 ml-1 flex items-center gap-1"
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="flex items-center gap-2 text-xs text-red-400 ml-1 font-mono"
                     >
-                      <Zap className="w-3 h-3" /> Welcome back, Agent {username}!
-                    </motion.p>
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      ACCESS GRANTED — {username.toUpperCase()}
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -287,83 +254,66 @@ export default function Home() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-4"
                   >
-                    <div className="space-y-2">
-                      <Label className="text-gray-300 font-medium ml-1">Secret Room Code</Label>
-                      <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-200"></div>
-                        <div className="relative flex items-center glass rounded-lg p-1">
-                          <div className="flex-1 font-mono text-xl font-bold text-center text-cyan-400 py-3 tracking-wider">
-                            {roomId}
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={copyRoomId}
-                            className="h-10 w-10 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-md"
-                          >
-                            <Copy className="w-5 h-5" />
-                          </Button>
+                    <div className="space-y-3">
+                      <Label className="text-gray-400 text-xs font-mono ml-1 uppercase tracking-wider">Session ID</Label>
+                      <div className="flex items-center bg-black/50 rounded border border-white/10 p-1">
+                        <div className="flex-1 font-mono text-lg font-semibold text-center text-red-400 py-2 tracking-widest uppercase">
+                          {roomId}
                         </div>
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
                         <Button 
-                          className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 transition-all text-lg font-medium h-12 shadow-lg hover:shadow-emerald-500/25 glow-cyan"
-                          onClick={() => handleJoin(roomId)}
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={copyRoomId}
+                          className="h-9 w-9 text-gray-500 hover:text-white hover:bg-white/10 rounded"
                         >
-                          <Zap className="w-5 h-5 mr-2" />
-                          Create Secret Room
+                          <Copy className="w-4 h-4" />
                         </Button>
-                      </motion.div>
+                      </div>
+                      <Button 
+                        className="w-full bg-red-600 hover:bg-red-500 transition-colors text-white font-mono tracking-wide h-12"
+                        onClick={() => handleJoin(roomId)}
+                      >
+                        INITIALIZE SESSION
+                      </Button>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative my-4">
                       <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t border-white/10" />
                       </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#0a0f19] px-3 text-gray-500 font-medium tracking-wider">Or join partner</span>
+                      <div className="relative flex justify-center">
+                        <span className="bg-black px-3 text-gray-600 text-xs font-mono tracking-wider">OR CONNECT</span>
                       </div>
                     </div>
 
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="Enter secret code..." 
+                        placeholder="ENTER SESSION ID..." 
                         value={joinId}
                         onChange={(e) => setJoinId(e.target.value)}
-                        className="bg-white/5 border-emerald-500/30 focus:border-emerald-400 focus:ring-emerald-400/20 text-white placeholder:text-gray-500 h-11"
+                        className="bg-black/50 border-white/10 focus:border-red-500/50 text-white placeholder:text-gray-600 h-12 font-mono uppercase"
                       />
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          className="h-11 w-11 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-400"
-                          onClick={() => handleJoin(joinId)}
-                          disabled={!joinId}
-                        >
-                          <ArrowRight className="w-5 h-5" />
-                        </Button>
-                      </motion.div>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        className="h-12 w-12 border-white/10 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50"
+                        onClick={() => handleJoin(joinId)}
+                        disabled={!joinId}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </Button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <motion.div 
-                className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-lg p-4 text-center text-sm border border-emerald-500/20"
-                animate={{ 
-                  boxShadow: ["0 0 0 rgba(0,229,255,0)", "0 0 20px rgba(0,229,255,0.2)", "0 0 0 rgba(0,229,255,0)"]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <p className="text-cyan-300">
+              <div className="bg-white/5 rounded p-3 text-center border border-white/5">
+                <p className="text-gray-500 text-xs font-mono">
                   {isUnlocked 
-                    ? "Ready for movie night! Share the code with your partner."
-                    : "Enter your codename to access the secret hideout..."}
+                    ? "// READY TO SYNC. SHARE SESSION ID WITH PARTNER."
+                    : "// AWAITING IDENTITY VERIFICATION..."}
                 </p>
-              </motion.div>
+              </div>
 
             </CardContent>
           </Card>
@@ -373,9 +323,9 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="text-center text-xs text-emerald-600 mt-4 font-mono"
+          className="text-center text-[10px] text-gray-600 mt-6 font-mono tracking-widest"
         >
-          TOP SECRET • THE TROUBLESOME TWO HQ
+          TROUBLESOME_TWO // PRIVATE_NETWORK // v2.0
         </motion.p>
       </motion.div>
     </div>

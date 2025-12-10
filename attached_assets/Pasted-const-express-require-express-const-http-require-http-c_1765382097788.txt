@@ -1,0 +1,153 @@
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Simple in-memory store for rooms
+const rooms = new Map();
+
+// Serve static files
+app.use(express.static('public'));
+app.use(express.json());
+
+// Generate a private room ID for you and your nephew
+const YOUR_PRIVATE_ROOM_ID = "family-" + uuidv4().split('-')[0]; // e.g., "family-abc123"
+
+// Routes
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/room/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'player.html'));
+});
+
+// API to create/get room
+app.get('/api/room', (req, res) => {
+  res.json({ 
+    roomId: YOUR_PRIVATE_ROOM_ID,
+    message: "Share this room ID with your nephew: " + YOUR_PRIVATE_ROOM_ID
+  });
+});
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('join-room', (roomId, username) => {
+    if (!rooms.has(roomId)) {
+      rooms.set(roomId, {
+        users: [],
+        videoUrl: '',
+        isPlaying: false,
+        currentTime: 0
+      });
+    }
+
+    const room = rooms.get(roomId);
+    
+    // Limit to 2 users (you and your nephew)
+    if (room.users.length >= 2) {
+      socket.emit('room-full');
+      return;
+    }
+
+    socket.join(roomId);
+    room.users.push({ id: socket.id, username });
+    
+    // Send current room state to new user
+    socket.emit('room-state', {
+      videoUrl: room.videoUrl,
+      isPlaying: room.isPlaying,
+      currentTime: room.currentTime,
+      users: room.users.map(u => u.username)
+    });
+
+    // Notify others in the room
+    socket.to(roomId).emit('user-joined', { 
+      username, 
+      userId: socket.id,
+      usersCount: room.users.length 
+    });
+
+    console.log(`${username} joined room ${roomId}`);
+  });
+
+  // Video control events
+  socket.on('play-video', (roomId, time) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.isPlaying = true;
+      room.currentTime = time;
+      socket.to(roomId).emit('video-played', time);
+    }
+  });
+
+  socket.on('pause-video', (roomId, time) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.isPlaying = false;
+      room.currentTime = time;
+      socket.to(roomId).emit('video-paused', time);
+    }
+  });
+
+  socket.on('seek-video', (roomId, time) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.currentTime = time;
+      socket.to(roomId).emit('video-seeked', time);
+    }
+  });
+
+  socket.on('change-video', (roomId, url) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.videoUrl = url;
+      room.isPlaying = false;
+      room.currentTime = 0;
+      socket.to(roomId).emit('video-changed', url);
+    }
+  });
+
+  socket.on('send-chat', (roomId, message, username) => {
+    socket.to(roomId).emit('receive-chat', { 
+      message, 
+      username, 
+      timestamp: new Date().toLocaleTimeString() 
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    
+    // Remove user from all rooms
+    for (const [roomId, room] of rooms) {
+      const userIndex = room.users.findIndex(u => u.id === socket.id);
+      if (userIndex !== -1) {
+        const username = room.users[userIndex].username;
+        room.users.splice(userIndex, 1);
+        
+        // Notify others
+        socket.to(roomId).emit('user-left', { username });
+        
+        // Clean up empty rooms
+        if (room.users.length === 0) {
+          rooms.delete(roomId);
+        }
+      }
+    }
+  });
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔐 Your private room ID: ${YOUR_PRIVATE_ROOM_ID}`);
+  console.log(`📺 Access your app: https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`);
+});

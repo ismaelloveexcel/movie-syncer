@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Movie Sync</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .room-id {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            border: 2px dashed #667eea;
+        }
+        
+        .room-id h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .code {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 2px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .instructions {
+            text-align: left;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        
+        .instructions ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+            color: #555;
+        }
+        
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn.copy {
+            background: #48bb78;
+        }
+        
+        .btn.copy:hover {
+            background: #38a169;
+        }
+        
+        .note {
+            margin-top: 25px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+            text-align: left;
+        }
+        
+        .connection-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .connected {
+            color: #38a169;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Family Movie Sync</h1>
+        <p class="subtitle">Your private theater for you and your nephew</p>
+        
+        <div class="room-id">
+            <h2>Your Private Room ID:</h2>
+            <div class="code" id="roomCode">Loading...</div>
+            <button class="btn copy" onclick="copyRoomId()">📋 Copy Room ID</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to use:</h3>
+            <ol>
+                <li>Copy the Room ID above</li>
+                <li>Share it with your nephew</li>
+                <li>Enter your names and join the room</li>
+                <li>Paste a movie URL from movies2watch.cc</li>
+                <li>Watch together in sync! 🍿</li>
+            </ol>
+        </div>
+        
+        <a href="#" class="btn" id="joinBtn">Join Private Room</a>
+        
+        <div class="connection-info" id="connectionInfo">
+            <p>⚡ Connected to server</p>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong> This app is private and only accessible by you and your nephew. 
+            No one else can join your room without the Room ID.
+        </div>
+    </div>
+
+    <script>
+        async function initialize() {
+            try {
+                const response = await fetch('/api/room');
+                const data = await response.json();
+                
+                document.getElementById('roomCode').textContent = data.roomId;
+                document.getElementById('joinBtn').href = `/room/${data.roomId}`;
+                
+                document.getElementById('connectionInfo').style.display = 'block';
+            } catch (error) {
+                document.getElementById('roomCode').textContent = 'Error loading room';
+                console.error('Error:', error);
+            }
+        }
+        
+        function copyRoomId() {
+            const roomCode = document.getElementById('roomCode').textContent;
+            navigator.clipboard.writeText(roomCode).then(() => {
+                const btn = document.querySelector('.btn.copy');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                btn.style.background = '#38a169';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+        
+        initialize();
+    </script>
+</body>
+</html>

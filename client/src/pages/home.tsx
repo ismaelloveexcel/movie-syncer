@@ -100,7 +100,6 @@ export default function Home() {
           className="absolute top-[20%] right-[20%] w-[30%] h-[30%] rounded-full bg-pink-500/15 blur-3xl"
         />
       </div>
-
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -134,9 +133,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              CLASSIFIED MEMBERS ONLY
-            </h1>
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">[ CLASSIFIED - MEMBERS ONLY ]</h1>
             <motion.p 
               className="text-purple-300/80 text-sm font-mono tracking-wider"
               animate={{ opacity: [0.5, 1, 0.5] }}

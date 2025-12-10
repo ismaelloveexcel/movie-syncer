@@ -251,16 +251,16 @@ export default function Room() {
   return (
     <div className="min-h-screen bg-animated-gradient text-gray-100 flex flex-col font-sans grid-pattern">
       {/* Header */}
-      <header className="h-16 border-b border-cyan-500/20 glass flex items-center justify-between px-6 sticky top-0 z-50">
+      <header className="h-16 border-b border-green-500/20 glass flex items-center justify-between px-6 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <motion.div 
-            className="bg-gradient-to-br from-cyan-500 to-purple-500 p-2 rounded-lg glow-cyan"
+            className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-lg"
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
           >
             <Shield className="w-5 h-5 text-white" />
           </motion.div>
-          <h1 className="font-display font-bold text-lg hidden md:block bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="font-display font-bold text-lg hidden md:block bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
             The Secret Hideout
           </h1>
           {isAdmin && (
@@ -656,7 +656,7 @@ export default function Room() {
                   ) : (
                     <>
                       <div className="flex items-baseline gap-2 mb-1">
-                        <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-purple-400'}`}>
+                        <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-emerald-400'}`}>
                           {msg.username}
                         </span>
                         <span className="text-[10px] text-gray-600">{msg.timestamp}</span>
@@ -681,7 +681,7 @@ export default function Room() {
           <div className="p-4 border-t border-white/10 bg-[#141620]">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs text-gray-400">Chatting as:</span>
-              <span className="text-xs font-bold text-purple-400">{username}</span>
+              <span className="text-xs font-bold text-emerald-400">{username}</span>
               {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
             </div>
             <form onSubmit={handleSendMessage} className="flex gap-2">

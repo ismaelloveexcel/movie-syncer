@@ -68,8 +68,8 @@
   --popover: 230 20% 8%;
   --popover-foreground: 210 40% 98%;
   
-  /* Electric cyan primary */
-  --primary: 185 100% 50%;
+  /* Matrix green primary */
+  --primary: 142 76% 45%;
   --primary-foreground: 230 25% 5%;
   
   --secondary: 230 15% 15%;
@@ -78,8 +78,8 @@
   --muted: 230 15% 18%;
   --muted-foreground: 230 10% 60%;
   
-  /* Hot magenta accent */
-  --accent: 320 100% 60%;
+  /* Emerald accent */
+  --accent: 160 84% 39%;
   --accent-foreground: 0 0% 100%;
   
   --destructive: 0 85% 55%;
@@ -87,7 +87,7 @@
   
   --border: 230 20% 20%;
   --input: 230 20% 12%;
-  --ring: 185 100% 50%;
+  --ring: 142 76% 45%;
   
   --radius: 0.75rem;
   
@@ -99,18 +99,18 @@
   
   --sidebar: 230 20% 7%;
   --sidebar-foreground: 210 40% 98%;
-  --sidebar-primary: 185 100% 50%;
+  --sidebar-primary: 142 76% 45%;
   --sidebar-primary-foreground: 230 25% 5%;
   --sidebar-accent: 230 15% 15%;
   --sidebar-accent-foreground: 210 40% 98%;
   --sidebar-border: 230 20% 15%;
-  --sidebar-ring: 185 100% 50%;
+  --sidebar-ring: 142 76% 45%;
   
   /* Custom neon colors */
+  --neon-green: #22c55e;
+  --neon-emerald: #10b981;
+  --neon-lime: #84cc16;
   --neon-cyan: #00e5ff;
-  --neon-magenta: #ff00c8;
-  --neon-purple: #a855f7;
-  --neon-green: #00ff9d;
   --neon-orange: #ff6b35;
 }
 
@@ -130,6 +130,9 @@
 
 /* Neon glow utilities */
 @layer utilities {
+  .glow-green {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3), 0 0 40px rgba(34, 197, 94, 0.1);
+  }
   .glow-cyan {
     box-shadow: 0 0 20px rgba(0, 229, 255, 0.3), 0 0 40px rgba(0, 229, 255, 0.1);
   }
@@ -138,6 +141,9 @@
   }
   .glow-purple {
     box-shadow: 0 0 20px rgba(168, 85, 247, 0.3), 0 0 40px rgba(168, 85, 247, 0.1);
+  }
+  .text-glow-green {
+    text-shadow: 0 0 10px rgba(34, 197, 94, 0.8), 0 0 20px rgba(34, 197, 94, 0.4);
   }
   .text-glow-cyan {
     text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 229, 255, 0.4);
@@ -220,7 +226,7 @@
 /* Grid pattern overlay */
 .grid-pattern {
   background-image: 
-    linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    linear-gradient(rgba(34, 197, 94, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 197, 94, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
 }

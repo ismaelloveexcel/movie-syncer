@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, ArrowRight, Film, Shield, Sparkles, Zap, Lock } from "lucide-react";
+import { Copy, ArrowRight, Film, Shield, Sparkles, Zap, Lock, QrCode } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -111,14 +111,19 @@ export default function Home() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 mb-4 shadow-2xl glow-cyan relative"
+            className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-green-500 mb-4 shadow-2xl glow-cyan relative"
           >
             <motion.div
               animate={{ rotate: [0, 360] }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               className="absolute inset-0 rounded-2xl border-2 border-dashed border-white/30"
             />
-            <Shield className="w-12 h-12 text-white" />
+            <motion.div
+              animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <QrCode className="w-14 h-14 text-white" />
+            </motion.div>
             <motion.div
               className="absolute -top-1 -right-1"
               animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
@@ -133,32 +138,31 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <motion.p 
-              className="text-purple-300/80 text-sm font-mono tracking-wider"
-              animate={{ opacity: [0.5, 1, 0.5] }}
+            <motion.h1 
+              className="text-4xl md:text-5xl font-display font-bold mb-3 bg-gradient-to-r from-cyan-400 via-emerald-400 to-green-400 bg-clip-text text-transparent"
+              animate={{ scale: [1, 1.02, 1] }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              [ CLASSIFIED - MEMBERS ONLY ]
-            </motion.p>
+              [ CLASSIFIED ]
+            </motion.h1>
+            <p className="text-emerald-300/80 text-lg font-mono tracking-wider">
+              MEMBERS ONLY
+            </p>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="mt-4 flex justify-center gap-3"
+            className="mt-4"
           >
             <motion.div 
-              className="px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 text-xs font-medium flex items-center gap-1"
+              className="px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-2 justify-center"
               whileHover={{ scale: 1.05 }}
+              animate={{ boxShadow: ["0 0 0 rgba(16,185,129,0)", "0 0 20px rgba(16,185,129,0.3)", "0 0 0 rgba(16,185,129,0)"] }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
-              <Zap className="w-3 h-3" /> Ismael
-            </motion.div>
-            <motion.div 
-              className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-medium flex items-center gap-1"
-              whileHover={{ scale: 1.05 }}
-            >
-              <Zap className="w-3 h-3" /> Aidan
+              <Zap className="w-4 h-4" /> THE TROUBLESOME TWO
             </motion.div>
           </motion.div>
         </div>
@@ -168,10 +172,10 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-dark border-cyan-500/20 shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5" />
+          <Card className="glass-dark border-emerald-500/20 shadow-2xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-emerald-500/5" />
             
-            <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 border-b border-white/10 pb-6 relative">
+            <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border-b border-white/10 pb-6 relative">
               <motion.div
                 className="absolute top-2 right-2"
                 animate={{ rotate: [0, 10, -10, 0] }}
@@ -179,8 +183,8 @@ export default function Home() {
               >
                 <Lock className="w-4 h-4 text-cyan-500/50" />
               </motion.div>
-              <CardTitle className="text-xl text-center bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                <Film className="w-5 h-5 text-cyan-400" />
+              <CardTitle className="text-xl text-center bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                <Film className="w-5 h-5 text-emerald-400" />
                 Access Portal
               </CardTitle>
               <CardDescription className="text-center text-gray-400">
@@ -239,7 +243,7 @@ export default function Home() {
                     <div className="space-y-2">
                       <Label className="text-gray-300 font-medium ml-1">Secret Room Code</Label>
                       <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-200"></div>
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-200"></div>
                         <div className="relative flex items-center glass rounded-lg p-1">
                           <div className="flex-1 font-mono text-xl font-bold text-center text-cyan-400 py-3 tracking-wider">
                             {roomId}
@@ -259,7 +263,7 @@ export default function Home() {
                         whileTap={{ scale: 0.98 }}
                       >
                         <Button 
-                          className="w-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 transition-all text-lg font-medium h-12 shadow-lg hover:shadow-cyan-500/25 glow-cyan"
+                          className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 transition-all text-lg font-medium h-12 shadow-lg hover:shadow-emerald-500/25 glow-cyan"
                           onClick={() => handleJoin(roomId)}
                         >
                           <Zap className="w-5 h-5 mr-2" />
@@ -282,13 +286,13 @@ export default function Home() {
                         placeholder="Enter secret code..." 
                         value={joinId}
                         onChange={(e) => setJoinId(e.target.value)}
-                        className="bg-white/5 border-purple-500/30 focus:border-purple-400 focus:ring-purple-400/20 text-white placeholder:text-gray-500 h-11"
+                        className="bg-white/5 border-emerald-500/30 focus:border-emerald-400 focus:ring-emerald-400/20 text-white placeholder:text-gray-500 h-11"
                       />
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                         <Button 
                           variant="outline" 
                           size="icon"
-                          className="h-11 w-11 border-purple-500/30 hover:bg-purple-500/10 hover:text-purple-400 hover:border-purple-400"
+                          className="h-11 w-11 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-400"
                           onClick={() => handleJoin(joinId)}
                           disabled={!joinId}
                         >
@@ -301,7 +305,7 @@ export default function Home() {
               </AnimatePresence>
 
               <motion.div 
-                className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 rounded-lg p-4 text-center text-sm border border-cyan-500/20"
+                className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-lg p-4 text-center text-sm border border-emerald-500/20"
                 animate={{ 
                   boxShadow: ["0 0 0 rgba(0,229,255,0)", "0 0 20px rgba(0,229,255,0.2)", "0 0 0 rgba(0,229,255,0)"]
                 }}
@@ -322,9 +326,9 @@ export default function Home() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
-          className="text-center text-xs text-gray-600 mt-4"
+          className="text-center text-xs text-emerald-600 mt-4 font-mono"
         >
-          Top Secret • Ismael & Aidan's Movie HQ
+          TOP SECRET • THE TROUBLESOME TWO HQ
         </motion.p>
       </motion.div>
     </div>

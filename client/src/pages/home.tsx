@@ -107,63 +107,30 @@ export default function Home() {
         className="max-w-md w-full relative z-10"
       >
         <div className="text-center mb-8">
-          <motion.div 
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-flex items-center justify-center w-28 h-28 rounded-2xl bg-gradient-to-br from-cyan-500 via-emerald-500 to-green-500 mb-4 shadow-2xl glow-cyan relative"
-          >
-            <motion.div
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-0 rounded-2xl border-2 border-dashed border-white/30"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <QrCode className="w-14 h-14 text-white" />
-            </motion.div>
-            <motion.div
-              className="absolute -top-1 -right-1"
-              animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Sparkles className="w-6 h-6 text-yellow-400" />
-            </motion.div>
-          </motion.div>
-          
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
           >
-            <motion.h1 
-              className="text-4xl md:text-5xl font-display font-bold mb-3 bg-gradient-to-r from-cyan-400 via-emerald-400 to-green-400 bg-clip-text text-transparent"
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
-              [ CLASSIFIED ]
-            </motion.h1>
-            <p className="text-emerald-300/80 text-lg font-mono tracking-wider">
-              MEMBERS ONLY
+            <h1 className="text-5xl md:text-6xl font-display font-black tracking-tight mb-2 text-white">
+              CLASSIFIED
+            </h1>
+            <div className="h-1 w-24 mx-auto bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-full mb-4" />
+            <p className="text-gray-400 text-sm font-mono tracking-[0.3em] uppercase">
+              Members Only
             </p>
           </motion.div>
           
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-4"
+            transition={{ delay: 0.5 }}
+            className="mt-6"
           >
-            <motion.div 
-              className="px-4 py-2 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-sm font-bold flex items-center gap-2 justify-center"
-              whileHover={{ scale: 1.05 }}
-              animate={{ boxShadow: ["0 0 0 rgba(16,185,129,0)", "0 0 20px rgba(16,185,129,0.3)", "0 0 0 rgba(16,185,129,0)"] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <Zap className="w-4 h-4" /> THE TROUBLESOME TWO
-            </motion.div>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-white/5 border border-white/10 text-gray-300 text-sm font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              The Troublesome Two
+            </div>
           </motion.div>
         </div>
 
@@ -172,61 +139,42 @@ export default function Home() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="glass-dark border-emerald-500/20 shadow-2xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-emerald-500/5" />
+          <Card className="bg-[#0d1117] border-white/10 shadow-2xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent" />
             
-            <CardHeader className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 border-b border-white/10 pb-6 relative">
-              <motion.div
-                className="absolute top-2 right-2"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              >
-                <Lock className="w-4 h-4 text-cyan-500/50" />
-              </motion.div>
-              <CardTitle className="text-xl text-center bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                <Film className="w-5 h-5 text-emerald-400" />
-                Access Portal
+            <CardHeader className="border-b border-white/10 pb-6 relative">
+              <Lock className="absolute top-4 right-4 w-4 h-4 text-gray-600" />
+              <CardTitle className="text-lg text-center text-white font-semibold">
+                Secure Access
               </CardTitle>
-              <CardDescription className="text-center text-gray-400">
-                Enter your codename to unlock
+              <CardDescription className="text-center text-gray-500 text-sm">
+                Enter your name to continue
               </CardDescription>
             </CardHeader>
             
             <CardContent className="pt-6 space-y-6 relative">
               <div className="space-y-2">
-                <Label className="text-gray-300 font-medium ml-1 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-cyan-400" /> Your Codename
+                <Label className="text-gray-400 text-sm ml-1">
+                  Your Name
                 </Label>
                 <div className="relative">
                   <Input 
                     placeholder="Enter your name..." 
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="bg-white/5 border-cyan-500/30 focus:border-cyan-400 focus:ring-cyan-400/20 text-white placeholder:text-gray-500 h-11 pr-10"
+                    className="bg-white/5 border-white/10 focus:border-emerald-500/50 focus:ring-emerald-500/20 text-white placeholder:text-gray-600 h-12"
                     data-testid="input-username"
                   />
-                  <AnimatePresence>
-                    {isKnownMember && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2"
-                      >
-                        <Sparkles className="w-5 h-5 text-yellow-400" />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
                 <AnimatePresence>
                   {isKnownMember && (
                     <motion.p
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-xs text-emerald-400 ml-1 flex items-center gap-1"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="text-xs text-emerald-500 ml-1"
                     >
-                      <Zap className="w-3 h-3" /> Welcome back, Agent {username}!
+                      Access granted — Welcome, {username}
                     </motion.p>
                   )}
                 </AnimatePresence>
@@ -240,83 +188,66 @@ export default function Home() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-4"
                   >
-                    <div className="space-y-2">
-                      <Label className="text-gray-300 font-medium ml-1">Secret Room Code</Label>
-                      <div className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-200"></div>
-                        <div className="relative flex items-center glass rounded-lg p-1">
-                          <div className="flex-1 font-mono text-xl font-bold text-center text-cyan-400 py-3 tracking-wider">
-                            {roomId}
-                          </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={copyRoomId}
-                            className="h-10 w-10 text-gray-400 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-md"
-                          >
-                            <Copy className="w-5 h-5" />
-                          </Button>
+                    <div className="space-y-3">
+                      <Label className="text-gray-400 text-sm ml-1">Room Code</Label>
+                      <div className="flex items-center bg-white/5 rounded-lg border border-white/10 p-1">
+                        <div className="flex-1 font-mono text-lg font-semibold text-center text-white py-2 tracking-wider">
+                          {roomId}
                         </div>
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
                         <Button 
-                          className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 transition-all text-lg font-medium h-12 shadow-lg hover:shadow-emerald-500/25 glow-cyan"
-                          onClick={() => handleJoin(roomId)}
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={copyRoomId}
+                          className="h-9 w-9 text-gray-500 hover:text-white hover:bg-white/10 rounded-md"
                         >
-                          <Zap className="w-5 h-5 mr-2" />
-                          Create Secret Room
+                          <Copy className="w-4 h-4" />
                         </Button>
-                      </motion.div>
+                      </div>
+                      <Button 
+                        className="w-full bg-emerald-600 hover:bg-emerald-500 transition-colors text-white font-medium h-12"
+                        onClick={() => handleJoin(roomId)}
+                      >
+                        Create Room
+                      </Button>
                     </div>
 
-                    <div className="relative">
+                    <div className="relative my-6">
                       <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t border-white/10" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#0a0f19] px-3 text-gray-500 font-medium tracking-wider">Or join partner</span>
+                        <span className="bg-[#0a0f19] px-3 text-gray-600 tracking-wider">or join existing</span>
                       </div>
                     </div>
 
                     <div className="flex gap-2">
                       <Input 
-                        placeholder="Enter secret code..." 
+                        placeholder="Enter room code..." 
                         value={joinId}
                         onChange={(e) => setJoinId(e.target.value)}
-                        className="bg-white/5 border-emerald-500/30 focus:border-emerald-400 focus:ring-emerald-400/20 text-white placeholder:text-gray-500 h-11"
+                        className="bg-white/5 border-white/10 focus:border-emerald-500/50 text-white placeholder:text-gray-600 h-12"
                       />
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Button 
-                          variant="outline" 
-                          size="icon"
-                          className="h-11 w-11 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-400"
-                          onClick={() => handleJoin(joinId)}
-                          disabled={!joinId}
-                        >
-                          <ArrowRight className="w-5 h-5" />
-                        </Button>
-                      </motion.div>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        className="h-12 w-12 border-white/10 hover:bg-white/5 hover:text-white"
+                        onClick={() => handleJoin(joinId)}
+                        disabled={!joinId}
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </Button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <motion.div 
-                className="bg-gradient-to-r from-cyan-500/10 to-emerald-500/10 rounded-lg p-4 text-center text-sm border border-emerald-500/20"
-                animate={{ 
-                  boxShadow: ["0 0 0 rgba(0,229,255,0)", "0 0 20px rgba(0,229,255,0.2)", "0 0 0 rgba(0,229,255,0)"]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-              >
-                <p className="text-cyan-300">
+              <div className="bg-white/5 rounded-lg p-4 text-center text-sm border border-white/5">
+                <p className="text-gray-400">
                   {isUnlocked 
-                    ? "🎬 Ready for movie night! Share the code with your partner."
-                    : "🔐 Enter your codename to access the secret hideout..."}
+                    ? "Ready to sync. Share the room code with your partner."
+                    : "Enter your name to continue."}
                 </p>
-              </motion.div>
+              </div>
 
             </CardContent>
           </Card>
@@ -325,10 +256,10 @@ export default function Home() {
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="text-center text-xs text-emerald-600 mt-4 font-mono"
+          transition={{ delay: 0.8 }}
+          className="text-center text-xs text-gray-600 mt-6"
         >
-          TOP SECRET • THE TROUBLESOME TWO HQ
+          Private sync for The Troublesome Two
         </motion.p>
       </motion.div>
     </div>

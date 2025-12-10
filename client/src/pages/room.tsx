@@ -203,7 +203,32 @@ export default function Room() {
         {/* Video Area */}
         <div className="flex-1 flex flex-col relative bg-black">
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-            {videoUrl ? (
+            {videoUrl === 'mock:netflix' ? (
+               <div className="w-full h-full relative group bg-black flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black">
+                  <div className="text-center space-y-6 max-w-lg p-8 rounded-2xl border border-white/5 bg-white/5 backdrop-blur-sm">
+                    <h2 className="text-5xl font-black text-red-600 tracking-tighter drop-shadow-2xl">NETFLIX</h2>
+                    <div className="space-y-2">
+                      <p className="text-xl font-medium text-white">Stranger Things</p>
+                      <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
+                        <span className="border border-gray-600 px-1 rounded">TV-14</span>
+                        <span>5 Seasons</span>
+                        <span className="border border-gray-600 px-1 rounded">HD</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-400 leading-relaxed">
+                      <span className="text-red-400 font-bold">Prototype Note:</span> Real Netflix cannot be embedded in other websites due to DRM security protections. 
+                      <br/><br/>
+                      In a real production app, this would require a browser extension (like Teleparty) to sync playback while users watch on the actual Netflix.com site.
+                    </p>
+
+                    <Button className="bg-white text-black hover:bg-gray-200 font-bold px-8" onClick={() => setIsPlaying(!isPlaying)}>
+                      {isPlaying ? <Pause className="w-4 h-4 mr-2"/> : <Play className="w-4 h-4 mr-2"/>}
+                      {isPlaying ? "Pause Prototype" : "Resume"}
+                    </Button>
+                  </div>
+               </div>
+            ) : videoUrl ? (
               <div className="w-full h-full relative group">
                 {/* Mock Video Player */}
                 <iframe 
@@ -257,6 +282,21 @@ export default function Room() {
               </div>
               <Button onClick={handleLoadVideo} variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/5">
                 Load
+              </Button>
+            </div>
+            
+            <div className="flex gap-2 border-l border-white/10 pl-4 ml-2">
+               <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-red-500 hover:text-red-400 hover:bg-red-500/10"
+                onClick={() => {
+                  setVideoUrl('mock:netflix');
+                  socket.emit('change-video', roomId, 'mock:netflix');
+                  toast({ title: "Netflix Mode (Prototype)" });
+                }}
+              >
+                <span className="font-bold text-xs tracking-widest">NETFLIX</span>
               </Button>
             </div>
           </div>

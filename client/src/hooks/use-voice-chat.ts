@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { socket } from '@/lib/socket';
 import { ICE_SERVERS } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
 
 interface PeerConnection {
   peerId: string;
@@ -8,6 +9,7 @@ interface PeerConnection {
 }
 
 export function useVoiceChat(roomId: string, username: string) {
+  const { toast } = useToast();
   const [isMuted, setIsMuted] = useState(true);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [connectedPeers, setConnectedPeers] = useState<string[]>([]);
@@ -114,7 +116,30 @@ export function useVoiceChat(roomId: string, username: string) {
       
     } catch (err: any) {
       console.error('Failed to get microphone:', err);
-      setError('Could not access microphone. Please allow microphone access.');
+      let errorMessage = 'Could not start voice chat';
+      let errorDescription = 'Please try again';
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Microphone Access Denied';
+        errorDescription = 'Please allow microphone access in your browser settings and try again.';
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        errorMessage = 'No Microphone Found';
+        errorDescription = 'Please connect a microphone and try again.';
+      } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+        errorMessage = 'Microphone In Use';
+        errorDescription = 'Your microphone might be used by another application. Close other apps and try again.';
+      } else if (err.name === 'OverconstrainedError') {
+        errorMessage = 'Microphone Not Compatible';
+        errorDescription = 'Your microphone doesn\'t support the required audio settings.';
+      }
+
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: errorMessage,
+        description: errorDescription,
+        duration: 5000
+      });
     }
   }, [roomId, username]);
 

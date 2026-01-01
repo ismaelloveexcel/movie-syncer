@@ -27,7 +27,26 @@ export function useScreenShare(roomId: string, username: string) {
       }
     };
 
+    pc.onicecandidateerror = (event) => {
+      console.warn('ICE candidate error:', event);
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', pc.iceConnectionState);
+      if (pc.iceConnectionState === 'failed') {
+        // Try to restart ICE if it fails
+        pc.restartIce();
+        toast({
+          variant: "destructive",
+          title: "Connection Issue",
+          description: "Trying to reconnect screen share...",
+          duration: 3000
+        });
+      }
+    };
+
     pc.ontrack = (event) => {
+      console.log('Received remote track:', event.track.kind);
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
       }
@@ -35,14 +54,29 @@ export function useScreenShare(roomId: string, username: string) {
     };
 
     pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState);
       if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
         stopViewing();
+        if (pc.connectionState === 'failed') {
+          toast({
+            variant: "destructive",
+            title: "Screen Share Failed",
+            description: "Could not establish connection. Try again or check your network.",
+            duration: 5000
+          });
+        }
+      } else if (pc.connectionState === 'connected') {
+        toast({
+          title: "Screen Share Connected",
+          description: "You are now viewing the shared screen.",
+          duration: 3000
+        });
       }
     };
 
     peerConnectionRef.current = pc;
     return pc;
-  }, [roomId, username]);
+  }, [roomId, username, toast, stopViewing]);
 
   const startScreenShare = useCallback(async () => {
     try {

@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
 import { storage } from "./storage";
+import { insertWatchHistorySchema, insertMovieListSchema } from "@shared/schema";
 
 interface RoomState {
   users: { id: string; username: string }[];
@@ -213,6 +214,73 @@ export async function registerRoutes(
         }
       }
     });
+  });
+
+  // Watch History API
+  app.get('/api/watch-history', async (req, res) => {
+    try {
+      const history = await storage.getWatchHistory();
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch watch history' });
+    }
+  });
+
+  app.post('/api/watch-history', async (req, res) => {
+    try {
+      const data = insertWatchHistorySchema.parse(req.body);
+      const entry = await storage.addWatchHistory(data);
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid data' });
+    }
+  });
+
+  // Movie Lists API (favorites and to-watch)
+  app.get('/api/movie-list/:type', async (req, res) => {
+    try {
+      const { type } = req.params;
+      if (type !== 'favorites' && type !== 'towatch') {
+        return res.status(400).json({ error: 'Invalid list type' });
+      }
+      const list = await storage.getMovieList(type);
+      res.json(list);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch movie list' });
+    }
+  });
+
+  app.post('/api/movie-list', async (req, res) => {
+    try {
+      const data = insertMovieListSchema.parse(req.body);
+      const entry = await storage.addToMovieList(data);
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid data' });
+    }
+  });
+
+  app.delete('/api/movie-list/:id', async (req, res) => {
+    try {
+      await storage.removeFromMovieList(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to remove item' });
+    }
+  });
+
+  app.post('/api/movie-list/:id/watched', async (req, res) => {
+    try {
+      const { rating } = req.body;
+      const validRatings = ['loved', 'liked', 'ok', null, undefined];
+      if (rating && !validRatings.includes(rating)) {
+        return res.status(400).json({ error: 'Invalid rating. Use loved, liked, or ok' });
+      }
+      await storage.moveToWatched(req.params.id, rating);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to mark as watched' });
+    }
   });
 
   return httpServer;

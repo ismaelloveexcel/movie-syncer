@@ -3,9 +3,10 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, ArrowRight, Shield, Clock, Trash2, Share2, ExternalLink } from "lucide-react";
+import { Copy, ArrowRight, Shield, Clock, Trash2, Share2, ExternalLink, Film, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { PageTransition } from "@/components/loading-screen";
 
 const MEMBERS = ["Ismael", "Aidan"];
 const RECENT_ROOMS_KEY = "recent-rooms";
@@ -364,6 +365,22 @@ export default function Home() {
               </p>
             )}
           </div>
+
+          {/* Movie Lists Button */}
+          {isUnlocked && (
+            <div className="px-5 py-3 border-t border-white/5">
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-green-400 hover:bg-green-500/10 h-8 text-xs font-mono"
+                onClick={() => setLocation("/lists")}
+                data-testid="button-movie-lists"
+              >
+                <Film className="w-3.5 h-3.5" />
+                <span>MOVIE LISTS</span>
+                <Heart className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
 
           {/* Bottom bar */}
           <div className="px-5 py-2 border-t border-white/5 bg-black/30 flex items-center justify-between">

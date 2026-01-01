@@ -54,12 +54,19 @@ export default function Home() {
     }
   }, [username]);
 
-  const copyRoomId = () => {
-    navigator.clipboard.writeText(roomId);
-    toast({
-      title: "Code Copied!",
-      description: "Share with your partner",
-    });
+  const copyRoomId = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId);
+      toast({
+        title: "Code Copied!",
+        description: "Share with your partner",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
   };
 
   const shareRoom = async () => {
@@ -84,11 +91,18 @@ export default function Home() {
     }
     
     // Fallback: copy full URL to clipboard
-    navigator.clipboard.writeText(roomUrl);
-    toast({
-      title: "Link Copied!",
-      description: "Full room URL copied to clipboard",
-    });
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Full room URL copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
   };
 
   const handleJoin = (id: string) => {

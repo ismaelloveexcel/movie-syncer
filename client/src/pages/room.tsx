@@ -66,6 +66,7 @@ export default function Room() {
   const [isNudging, setIsNudging] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   const username = useMemo(() => {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || "Guest";
@@ -320,9 +321,19 @@ export default function Room() {
   const playNotificationSound = useCallback(() => {
     if (!soundEnabled) return;
     
-    // Create a simple notification beep using Web Audio API
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Reuse existing AudioContext or create new one
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      const audioContext = audioContextRef.current;
+      
+      // Resume if suspended (browser autoplay policy)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -378,18 +389,32 @@ export default function Room() {
       }
     }
     
-    navigator.clipboard.writeText(roomUrl);
-    toast({
-      title: "Link Copied!",
-      description: roomUrl,
-    });
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      toast({
+        title: "Link Copied!",
+        description: roomUrl,
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
   };
 
-  const copyRoomCode = () => {
-    navigator.clipboard.writeText(roomId);
-    toast({
-      description: `Room code copied: ${roomId}`,
-    });
+  const copyRoomCode = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId);
+      toast({
+        description: `Room code copied: ${roomId}`,
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
   };
 
   const handleLoadVideo = () => {

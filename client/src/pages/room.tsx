@@ -13,7 +13,8 @@ import {
   Play, Pause, Users, Film, Send, LogOut, Timer, SkipBack, SkipForward,
   MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff,
   Plug, Crosshair, Link as LinkIcon, MessageSquare, Shield, Zap, Sparkles,
-  Loader2, Wifi, WifiOff, Heart, ThumbsUp, Laugh, PartyPopper, Menu
+  Loader2, Wifi, WifiOff, Heart, ThumbsUp, Laugh, PartyPopper, Menu, 
+  Volume2, VolumeX, Bell, Copy, Share2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
@@ -58,6 +59,11 @@ export default function Room() {
 
   // Personal bonding features
   const [isTyping, setIsTyping] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('fms_sound_enabled');
+    return saved !== 'false'; // Default to true
+  });
+  const [isNudging, setIsNudging] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -155,10 +161,29 @@ export default function Room() {
 
     socket.on('receive-chat', (data: any) => {
       addMessage(data);
+      // Play notification sound for new messages
+      if (soundEnabled) {
+        playNotificationSound();
+      }
       // Increment unread if chat is closed on mobile
       if (!isMobileChatOpen && window.innerWidth < 768) {
         setUnreadCount(prev => prev + 1);
       }
+    });
+
+    // Handle nudge received
+    socket.on('receive-nudge', (senderUsername: string) => {
+      setIsNudging(true);
+      toast({
+        title: "👋 Nudge!",
+        description: `${senderUsername} wants your attention!`,
+        duration: 3000
+      });
+      // Vibrate if supported
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
+      setTimeout(() => setIsNudging(false), 1000);
     });
 
     socket.on('user-typing', (typingUsername: string) => {
@@ -213,6 +238,7 @@ export default function Room() {
       socket.off('user-joined');
       socket.off('user-left');
       socket.off('receive-chat');
+      socket.off('receive-nudge');
       socket.off('video-played');
       socket.off('video-paused');
       socket.off('video-changed');
@@ -287,6 +313,82 @@ export default function Room() {
     toast({
       description: `You sent ${emoji}`,
       duration: 1000
+    });
+  };
+
+  // Play notification sound for new messages
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabled) return;
+    
+    // Create a simple notification beep using Web Audio API
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 880; // A5 note
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (e) {
+      // Audio context might not be available
+    }
+  }, [soundEnabled]);
+
+  // Toggle sound notifications
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('fms_sound_enabled', String(newValue));
+    toast({
+      description: newValue ? "🔔 Sound notifications enabled" : "🔕 Sound notifications disabled",
+      duration: 2000
+    });
+  };
+
+  // Send nudge to get partner's attention
+  const sendNudge = () => {
+    socket.emit('send-nudge', roomId, username);
+    toast({
+      description: "👋 Nudge sent!",
+      duration: 1500
+    });
+  };
+
+  // Share room link
+  const shareRoomLink = async () => {
+    const roomUrl = `${window.location.origin}/room/${roomId}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'The Troublesome Two - Movie Session',
+          text: `Join my movie session! Room: ${roomId}`,
+          url: roomUrl,
+        });
+        return;
+      } catch (err) {
+        // Fall through to clipboard
+      }
+    }
+    
+    navigator.clipboard.writeText(roomUrl);
+    toast({
+      title: "Link Copied!",
+      description: roomUrl,
+    });
+  };
+
+  const copyRoomCode = () => {
+    navigator.clipboard.writeText(roomId);
+    toast({
+      description: `Room code copied: ${roomId}`,
     });
   };
 
@@ -527,7 +629,11 @@ export default function Room() {
   }
 
   return (
-    <div className="min-h-screen bg-animated-gradient text-gray-100 flex flex-col font-sans grid-pattern">
+    <motion.div 
+      className="min-h-screen bg-animated-gradient text-gray-100 flex flex-col font-sans grid-pattern"
+      animate={isNudging ? { x: [0, -10, 10, -10, 10, 0] } : {}}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header */}
       <header className="h-16 border-b border-green-500/20 glass flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
         <div className="flex items-center gap-2 md:gap-3">
@@ -555,6 +661,29 @@ export default function Room() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-4">
+          {/* Room Code with Copy/Share */}
+          <div className="hidden sm:flex items-center gap-1 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+            <span className="text-xs font-mono text-green-400 font-bold">{roomId}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={copyRoomCode}
+              className="h-6 w-6 text-gray-500 hover:text-green-400"
+              aria-label="Copy room code"
+            >
+              <Copy className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={shareRoomLink}
+              className="h-6 w-6 text-gray-500 hover:text-green-400"
+              aria-label="Share room link"
+            >
+              <Share2 className="w-3 h-3" />
+            </Button>
+          </div>
+
           {/* Connection Quality Indicator */}
           <Badge
             variant="outline"
@@ -567,6 +696,28 @@ export default function Room() {
             {connectionQuality === 'good' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
             {connectionQuality}
           </Badge>
+
+          {/* Sound Toggle */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSound}
+            className={`h-8 w-8 rounded-full ${soundEnabled ? 'text-green-400 hover:bg-green-500/10' : 'text-gray-500 hover:bg-gray-500/10'}`}
+            aria-label={soundEnabled ? "Disable sound notifications" : "Enable sound notifications"}
+          >
+            {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+          </Button>
+
+          {/* Nudge Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={sendNudge}
+            className="h-8 w-8 rounded-full text-yellow-400 hover:bg-yellow-500/10"
+            aria-label="Send nudge to get attention"
+          >
+            <Bell className="w-4 h-4" />
+          </Button>
 
           {/* Screen Share Controls - Desktop */}
           <div className="hidden lg:flex items-center gap-2">
@@ -998,6 +1149,6 @@ export default function Room() {
           <ChatComponent />
         </div>
       </main>
-    </div>
+    </motion.div>
   );
 }

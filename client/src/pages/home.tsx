@@ -3,29 +3,47 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, ArrowRight, Shield } from "lucide-react";
+import { Copy, ArrowRight, Shield, Clock, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants";
 
 const MEMBERS = ["Ismael", "Aidan"];
+const RECENT_ROOMS_KEY = "recent-rooms";
+
+type RecentRoom = {
+  id: string;
+  lastVisited: number;
+};
 
 export default function Home() {
   const [roomId, setRoomId] = useState<string>("");
   const [joinId, setJoinId] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [isUnlocked, setIsUnlocked] = useState(false);
+  const [recentRooms, setRecentRooms] = useState<RecentRoom[]>([]);
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
     const randomId = "TT-" + Math.random().toString(36).substring(2, 6).toUpperCase();
     setRoomId(randomId);
-    
+
     const savedName = localStorage.getItem(STORAGE_KEYS.USERNAME);
     if (savedName) {
       setUsername(savedName);
       if (MEMBERS.some(m => m.toLowerCase() === savedName.toLowerCase())) {
         setIsUnlocked(true);
+      }
+    }
+
+    // Load recent rooms
+    const recentRoomsData = localStorage.getItem(RECENT_ROOMS_KEY);
+    if (recentRoomsData) {
+      try {
+        const rooms = JSON.parse(recentRoomsData);
+        setRecentRooms(rooms.slice(0, 3)); // Show max 3 recent rooms
+      } catch (e) {
+        console.error("Failed to parse recent rooms", e);
       }
     }
   }, []);
@@ -47,11 +65,54 @@ export default function Home() {
   const handleJoin = (id: string) => {
     if (!id) return;
     if (!username.trim()) {
-      toast({ title: "Name Required", description: "Enter your name first" });
+      toast({
+        variant: "destructive",
+        title: "Name Required",
+        description: "Enter your name first"
+      });
       return;
     }
     localStorage.setItem(STORAGE_KEYS.USERNAME, username.trim());
+
+    // Save to recent rooms
+    const recentRoomsData = localStorage.getItem(RECENT_ROOMS_KEY);
+    let rooms: RecentRoom[] = [];
+    if (recentRoomsData) {
+      try {
+        rooms = JSON.parse(recentRoomsData);
+      } catch (e) {
+        rooms = [];
+      }
+    }
+
+    // Remove if already exists and add to front
+    rooms = rooms.filter(r => r.id !== id);
+    rooms.unshift({ id, lastVisited: Date.now() });
+
+    // Keep only last 5
+    rooms = rooms.slice(0, 5);
+
+    localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(rooms));
     setLocation(`/room/${id}`);
+  };
+
+  const clearRecentRooms = () => {
+    localStorage.removeItem(RECENT_ROOMS_KEY);
+    setRecentRooms([]);
+    toast({
+      description: "Recent rooms cleared"
+    });
+  };
+
+  const formatTimeAgo = (timestamp: number) => {
+    const seconds = Math.floor((Date.now() - timestamp) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   };
 
   const isKnownMember = MEMBERS.some(m => m.toLowerCase() === username.toLowerCase());
@@ -182,22 +243,63 @@ export default function Home() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Input 
-                      placeholder="Enter code..." 
+                    <Input
+                      placeholder="Enter code..."
                       value={joinId}
                       onChange={(e) => setJoinId(e.target.value.toUpperCase())}
                       className="bg-black/50 border-white/10 focus:border-green-500/50 text-white text-sm h-9 font-mono uppercase"
+                      aria-label="Room code input"
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="icon"
                       className="h-9 w-9 border-white/10 hover:bg-green-500/10 hover:text-green-400"
                       onClick={() => handleJoin(joinId)}
                       disabled={!joinId}
+                      aria-label="Join room"
                     >
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  {/* Recent Rooms */}
+                  {recentRooms.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-white/10">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-gray-500" />
+                          <span className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Recent</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearRecentRooms}
+                          className="h-5 px-2 text-[9px] text-gray-600 hover:text-gray-400"
+                          aria-label="Clear recent rooms"
+                        >
+                          <Trash2 className="w-2.5 h-2.5" />
+                        </Button>
+                      </div>
+                      <div className="space-y-1.5">
+                        {recentRooms.map((room) => (
+                          <motion.button
+                            key={room.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            onClick={() => handleJoin(room.id)}
+                            className="w-full flex items-center justify-between bg-black/30 hover:bg-black/50 border border-white/5 hover:border-green-500/30 rounded px-3 py-2 transition-all group"
+                          >
+                            <span className="font-mono text-xs text-green-400 font-bold tracking-wider">
+                              {room.id}
+                            </span>
+                            <span className="text-[9px] text-gray-600 group-hover:text-gray-500">
+                              {formatTimeAgo(room.lastVisited)}
+                            </span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { socket } from '@/lib/socket';
 import { ICE_SERVERS } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
 
 export function useScreenShare(roomId: string, username: string) {
+  const { toast } = useToast();
   const [isSharing, setIsSharing] = useState(false);
   const [isViewing, setIsViewing] = useState(false);
   const [sharerName, setSharerName] = useState<string | null>(null);
@@ -81,7 +83,27 @@ export function useScreenShare(roomId: string, username: string) {
       };
     } catch (err: any) {
       console.error('Screen share error:', err);
-      setError('Could not start screen sharing');
+      let errorMessage = 'Could not start screen sharing';
+      let errorDescription = 'Please try again';
+
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        errorMessage = 'Screen Share Cancelled';
+        errorDescription = 'You cancelled the screen share or didn\'t select a screen.';
+      } else if (err.name === 'NotFoundError') {
+        errorMessage = 'No Screen Available';
+        errorDescription = 'No screens or windows available to share.';
+      } else if (err.name === 'NotSupportedError') {
+        errorMessage = 'Screen Share Not Supported';
+        errorDescription = 'Your browser doesn\'t support screen sharing. Try Chrome, Edge, or Firefox.';
+      }
+
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: errorMessage,
+        description: errorDescription,
+        duration: 5000
+      });
     }
   }, [roomId, username, createPeerConnection]);
 

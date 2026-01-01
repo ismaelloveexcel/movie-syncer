@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useRoute, useLocation } from "wouter";
 import { socket, connectSocket } from "@/lib/socket";
 import { Button } from "@/components/ui/button";
@@ -7,16 +7,19 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
   Play, Pause, Users, Film, Send, LogOut, Timer, SkipBack, SkipForward,
   MonitorPlay, Globe, Mic, MicOff, Phone, PhoneOff, Monitor, MonitorOff,
-  Plug, Crosshair, Link as LinkIcon, MessageSquare, Shield, Zap, Sparkles
+  Plug, Crosshair, Link as LinkIcon, MessageSquare, Shield, Zap, Sparkles,
+  Loader2, Wifi, WifiOff, Heart, ThumbsUp, Laugh, PartyPopper, Menu
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { useScreenShare } from "@/hooks/use-screen-share";
 import { STORAGE_KEYS, ADMIN_NAME } from "@/lib/constants";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
   id: string;
@@ -24,6 +27,7 @@ type Message = {
   message: string;
   timestamp: string;
   isSystem?: boolean;
+  reaction?: string;
 };
 
 export default function Room() {
@@ -33,24 +37,34 @@ export default function Room() {
   const { toast } = useToast();
 
   const [connected, setConnected] = useState(false);
+  const [isJoining, setIsJoining] = useState(true);
+  const [connectionQuality, setConnectionQuality] = useState<'good' | 'fair' | 'poor'>('good');
   const [users, setUsers] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
   // State for video modes
   const [activeMode, setActiveMode] = useState("movie2watch"); // movie2watch, netflix, other
   const [videoUrl, setVideoUrl] = useState("");
   const [urlInput, setUrlInput] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
-  
+  const [isLoadingVideo, setIsLoadingVideo] = useState(false);
+
   // Netflix specific state
   const [countdown, setCountdown] = useState<number | null>(null);
   const [jumpTime, setJumpTime] = useState("");
-  
+
+  // Personal bonding features
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const username = useMemo(() => {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || "Guest";
   }, []);
-  
+
   const isAdmin = username.toLowerCase() === ADMIN_NAME.toLowerCase();
   
   // Voice chat
@@ -75,22 +89,58 @@ export default function Room() {
     stopScreenShare,
   } = useScreenShare(roomId, username);
 
+  // Monitor connection quality
+  useEffect(() => {
+    if (!connected) return;
+
+    const interval = setInterval(() => {
+      // Simple connection quality check based on socket state
+      if (socket.connected) {
+        setConnectionQuality('good');
+      } else {
+        setConnectionQuality('poor');
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [connected]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + M to toggle mute
+      if ((e.ctrlKey || e.metaKey) && e.key === 'm' && isVoiceActive) {
+        e.preventDefault();
+        toggleMute();
+        toast({ description: isMuted ? "🎤 Unmuted" : "🔇 Muted" });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isVoiceActive, isMuted, toggleMute, toast]);
+
   useEffect(() => {
     if (!roomId) return;
 
     connectSocket();
-    
+
     socket.on('connect', () => {
       setConnected(true);
       socket.emit('join-room', roomId, username);
-      toast({ title: "Connected", description: `Joined room: ${roomId}` });
+      toast({
+        title: "🎬 Connected!",
+        description: `Welcome to room ${roomId}`,
+        duration: 3000
+      });
     });
 
     socket.on('room-state', (state: any) => {
       setUsers(state.users);
       setVideoUrl(state.videoUrl);
       setIsPlaying(state.isPlaying);
-      addSystemMessage("Joined the room. Waiting for others...");
+      setIsJoining(false);
+      addSystemMessage("🎉 Ready to watch together!");
     });
 
     socket.on('user-joined', (data: any) => {
@@ -105,6 +155,17 @@ export default function Room() {
 
     socket.on('receive-chat', (data: any) => {
       addMessage(data);
+      // Increment unread if chat is closed on mobile
+      if (!isMobileChatOpen && window.innerWidth < 768) {
+        setUnreadCount(prev => prev + 1);
+      }
+    });
+
+    socket.on('user-typing', (typingUsername: string) => {
+      if (typingUsername !== username) {
+        setIsTyping(true);
+        setTimeout(() => setIsTyping(false), 3000);
+      }
     });
 
     // General video events
@@ -180,7 +241,7 @@ export default function Room() {
     });
   };
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
     if (!inputValue.trim()) return;
 
@@ -193,13 +254,48 @@ export default function Room() {
     addMessage(msg);
     socket.emit('send-chat', roomId, inputValue, username);
     setInputValue("");
+  }, [inputValue, username, roomId]);
+
+  // Typing indicator
+  const handleInputChange = (value: string) => {
+    setInputValue(value);
+
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Emit typing event
+    socket.emit('user-typing', roomId, username);
+
+    // Stop typing after 2 seconds of no input
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit('user-stopped-typing', roomId, username);
+    }, 2000);
+  };
+
+  // Quick reactions
+  const sendReaction = (emoji: string) => {
+    const reactionMsg = {
+      message: emoji,
+      username: username,
+      timestamp: new Date().toLocaleTimeString(),
+      reaction: emoji
+    };
+    addMessage(reactionMsg);
+    socket.emit('send-chat', roomId, emoji, username);
+    toast({
+      description: `You sent ${emoji}`,
+      duration: 1000
+    });
   };
 
   const handleLoadVideo = () => {
     if (!urlInput) return;
 
+    setIsLoadingVideo(true);
     let finalUrl = urlInput;
-    
+
     // Auto-convert standard YouTube watch URLs to embed URLs
     if (finalUrl.includes('youtube.com/watch?v=')) {
       const videoId = finalUrl.split('v=')[1]?.split('&')[0];
@@ -211,7 +307,15 @@ export default function Room() {
 
     setVideoUrl(finalUrl);
     socket.emit('change-video', roomId, finalUrl);
-    toast({ title: "Video Loaded" });
+
+    // Simulate loading time
+    setTimeout(() => {
+      setIsLoadingVideo(false);
+      toast({
+        title: "🎬 Video Loaded!",
+        description: "Ready to watch together"
+      });
+    }, 1000);
   };
 
   const togglePlay = () => {
@@ -248,25 +352,200 @@ export default function Room() {
     toast({ description: `Sent ${action} command` });
   };
 
+  // Reusable chat component
+  const ChatComponent = () => (
+    <>
+      <ScrollArea className="flex-1 p-4" role="log" aria-live="polite" aria-label="Chat messages">
+        <div className="space-y-4">
+          {messages.map((msg) => (
+            <motion.div
+              key={msg.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`flex flex-col ${msg.isSystem ? 'items-center' : (msg.username === username ? 'items-end' : 'items-start')}`}
+            >
+              {msg.isSystem ? (
+                <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full my-2">
+                  {msg.message}
+                </span>
+              ) : msg.reaction ? (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [1, 1.3, 1] }}
+                  className="text-4xl"
+                >
+                  {msg.reaction}
+                </motion.div>
+              ) : (
+                <>
+                  <div className="flex items-baseline gap-2 mb-1">
+                    <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-emerald-400'}`}>
+                      {msg.username}
+                    </span>
+                    <span className="text-[10px] text-gray-600">{msg.timestamp}</span>
+                  </div>
+                  <div
+                    className={`px-3 py-2 rounded-xl text-sm max-w-[90%] break-words ${
+                      msg.username === username
+                        ? 'bg-primary text-white rounded-tr-none'
+                        : 'bg-white/10 text-gray-200 rounded-tl-none'
+                    }`}
+                  >
+                    {msg.message}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          ))}
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center gap-2 text-xs text-gray-400"
+            >
+              <div className="flex gap-1">
+                <motion.span
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+                  className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+                />
+                <motion.span
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+                  className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+                />
+                <motion.span
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+                  className="w-1.5 h-1.5 bg-gray-400 rounded-full"
+                />
+              </div>
+              typing...
+            </motion.div>
+          )}
+          <div id="chat-end" />
+        </div>
+      </ScrollArea>
+
+      <div className="p-4 border-t border-white/10 bg-[#141620]">
+        {/* Quick reactions */}
+        <div className="flex gap-2 mb-3 justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sendReaction('❤️')}
+            className="hover:bg-red-500/20 text-2xl p-2 h-auto"
+            aria-label="Send heart reaction"
+          >
+            ❤️
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sendReaction('😂')}
+            className="hover:bg-yellow-500/20 text-2xl p-2 h-auto"
+            aria-label="Send laugh reaction"
+          >
+            😂
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sendReaction('👍')}
+            className="hover:bg-blue-500/20 text-2xl p-2 h-auto"
+            aria-label="Send thumbs up"
+          >
+            👍
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sendReaction('🎉')}
+            className="hover:bg-green-500/20 text-2xl p-2 h-auto"
+            aria-label="Send party popper"
+          >
+            🎉
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => sendReaction('🔥')}
+            className="hover:bg-orange-500/20 text-2xl p-2 h-auto"
+            aria-label="Send fire"
+          >
+            🔥
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-gray-400">Chatting as:</span>
+          <span className="text-xs font-bold text-emerald-400">{username}</span>
+          {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
+        </div>
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+            placeholder="Say something..."
+            className="bg-black/20 border-white/10 focus-visible:ring-primary/50 text-gray-200"
+            data-testid="input-chat"
+            aria-label="Chat message input"
+          />
+          <Button
+            type="submit"
+            size="icon"
+            variant="ghost"
+            className="hover:bg-primary/20 hover:text-primary"
+            data-testid="button-send-chat"
+            aria-label="Send message"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </form>
+        <p className="text-[10px] text-gray-600 mt-2 text-center">
+          Tip: Press Ctrl+Enter to send • Ctrl+M to mute
+        </p>
+      </div>
+    </>
+  );
+
+  // Loading screen
+  if (isJoining) {
+    return (
+      <div className="min-h-screen bg-animated-gradient text-gray-100 flex items-center justify-center font-sans grid-pattern">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-primary" />
+          <h2 className="text-2xl font-display font-bold mb-2">Connecting to Room</h2>
+          <p className="text-gray-400">Getting everything ready for you...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-animated-gradient text-gray-100 flex flex-col font-sans grid-pattern">
       {/* Header */}
-      <header className="h-16 border-b border-green-500/20 glass flex items-center justify-between px-6 sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <motion.div 
+      <header className="h-16 border-b border-green-500/20 glass flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
+        <div className="flex items-center gap-2 md:gap-3">
+          <motion.div
             className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-lg"
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
           >
-            <Shield className="w-5 h-5 text-white" />
+            <Shield className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </motion.div>
-          <h1 className="font-display font-bold text-lg hidden md:block bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-            The Secret Hideout
+          <h1 className="font-display font-bold text-base md:text-lg hidden sm:block bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+            The Troublesome Two
           </h1>
           {isAdmin && (
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
+              className="hidden sm:block"
             >
               <Badge className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-400 border-amber-500/50 flex items-center gap-1">
                 <Zap className="w-3 h-3" /> Commander
@@ -275,98 +554,162 @@ export default function Room() {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Screen Share Controls */}
-          <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Connection Quality Indicator */}
+          <Badge
+            variant="outline"
+            className={`hidden lg:flex items-center gap-1 ${
+              connectionQuality === 'good' ? 'border-green-500/50 text-green-400 bg-green-500/10' :
+              connectionQuality === 'fair' ? 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10' :
+              'border-red-500/50 text-red-400 bg-red-500/10'
+            }`}
+          >
+            {connectionQuality === 'good' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            {connectionQuality}
+          </Badge>
+
+          {/* Screen Share Controls - Desktop */}
+          <div className="hidden lg:flex items-center gap-2">
             {isSharing ? (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={stopScreenShare}
                 className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
                 data-testid="button-stop-screen"
+                aria-label="Stop screen sharing"
               >
                 <MonitorOff className="w-4 h-4 mr-2" />
-                Stop Share
+                <span className="hidden xl:inline">Stop Share</span>
               </Button>
             ) : (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={startScreenShare}
                 className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
                 data-testid="button-start-screen"
                 disabled={isViewing}
+                aria-label="Start screen sharing"
               >
                 <Monitor className="w-4 h-4 mr-2" />
-                Share Screen
+                <span className="hidden xl:inline">Share</span>
               </Button>
-            )}
-            {isViewing && sharerName && (
-              <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
-                Watching {sharerName}
-              </Badge>
             )}
           </div>
 
-          <div className="h-4 w-px bg-white/10 mx-1" />
-
-          {/* Voice Chat Controls */}
-          <div className="flex items-center gap-2">
+          {/* Voice Chat Controls - Desktop */}
+          <div className="hidden md:flex items-center gap-2">
             {isVoiceActive ? (
               <>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={toggleMute}
                   className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
                   data-testid="button-toggle-mute"
+                  aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                 >
                   {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={stopVoice}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-500/10 hidden lg:flex"
                   data-testid="button-stop-voice"
+                  aria-label="End voice call"
                 >
                   <PhoneOff className="w-4 h-4 mr-2" />
                   End Call
                 </Button>
-                {connectedPeers.length > 0 && (
-                  <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
-                    {connectedPeers.length} connected
-                  </Badge>
-                )}
               </>
             ) : (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={startVoice}
                 className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
                 data-testid="button-start-voice"
+                aria-label="Start voice chat"
               >
-                <Phone className="w-4 h-4 mr-2" />
-                Start Voice
+                <Phone className="w-4 h-4" />
+                <span className="hidden lg:inline ml-2">Voice</span>
               </Button>
             )}
           </div>
-          
-          <div className="h-4 w-px bg-white/10 mx-1" />
-          
-          <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-            <Users className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium">{users.length} Online</span>
+
+          <div className="h-4 w-px bg-white/10 mx-1 hidden md:block" />
+
+          {/* Room info and user count */}
+          <div className="hidden sm:flex items-center gap-2 bg-white/5 px-2 md:px-3 py-1.5 rounded-full border border-white/5">
+            <Users className="w-3 h-3 md:w-4 md:h-4 text-gray-400" />
+            <span className="text-xs md:text-sm font-medium">{users.length}</span>
           </div>
-          <div className="h-4 w-px bg-white/10 mx-1" />
-          <div className="flex items-center gap-2 text-xs text-gray-400 bg-white/5 px-3 py-1.5 rounded-md font-mono">
-            Room: {roomId}
-          </div>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white hover:bg-white/10" onClick={() => setLocation("/")}>
-            <LogOut className="w-5 h-5" />
-          </Button>
+
+          {/* Mobile Chat Button */}
+          <Sheet open={isMobileChatOpen} onOpenChange={setIsMobileChatOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden relative"
+                onClick={() => {
+                  setIsMobileChatOpen(true);
+                  setUnreadCount(0);
+                }}
+                aria-label="Open chat"
+              >
+                <MessageSquare className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"
+                  >
+                    {unreadCount}
+                  </motion.span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-80 bg-[#11131b] border-l border-white/10 p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b border-white/10">
+                <SheetTitle className="font-display font-medium flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  Chat
+                </SheetTitle>
+              </SheetHeader>
+              <ChatComponent />
+            </SheetContent>
+          </Sheet>
+
+          {/* Leave Room Button */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-white hover:bg-white/10"
+                aria-label="Leave room"
+              >
+                <LogOut className="w-4 h-4 md:w-5 md:h-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Leave the room?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to leave? You'll need the room code ({roomId}) to rejoin.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Stay</AlertDialogCancel>
+                <AlertDialogAction onClick={() => setLocation("/")}>
+                  Leave Room
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
@@ -375,29 +718,30 @@ export default function Room() {
         <div className="flex-1 flex flex-col relative bg-black">
           
           {/* Mode Tabs */}
-          <div className="bg-[#141620] border-b border-white/10 px-4 pt-2">
+          <div className="bg-[#141620] border-b border-white/10 px-2 md:px-4 pt-2">
             <Tabs value={activeMode} onValueChange={handleModeChange} className="w-full">
-              <TabsList className="bg-transparent border-b border-transparent w-full justify-start h-12 p-0 gap-6">
-                <TabsTrigger 
-                  value="movie2watch" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-gray-400 rounded-none px-0 pb-2 h-full"
+              <TabsList className="bg-transparent border-b border-transparent w-full justify-start h-12 p-0 gap-2 md:gap-6">
+                <TabsTrigger
+                  value="movie2watch"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-primary text-gray-400 rounded-none px-0 pb-2 h-full text-xs md:text-sm"
                 >
-                  <Film className="w-4 h-4 mr-2" />
-                  Movie2Watch / Embed
+                  <Film className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Movie2Watch</span>
+                  <span className="sm:hidden">Video</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="netflix" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#E50914] data-[state=active]:text-[#E50914] text-gray-400 rounded-none px-0 pb-2 h-full"
+                <TabsTrigger
+                  value="netflix"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-[#E50914] data-[state=active]:text-[#E50914] text-gray-400 rounded-none px-0 pb-2 h-full text-xs md:text-sm"
                 >
-                  <span className="text-[#E50914] font-bold mr-2">N</span>
-                  Netflix Sync
+                  <span className="text-[#E50914] font-bold mr-1 md:mr-2">N</span>
+                  Netflix
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="other" 
-                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-400 data-[state=active]:text-blue-400 text-gray-400 rounded-none px-0 pb-2 h-full"
+                <TabsTrigger
+                  value="other"
+                  className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-blue-400 data-[state=active]:text-blue-400 text-gray-400 rounded-none px-0 pb-2 h-full text-xs md:text-sm"
                 >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Other Sites
+                  <Globe className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  Other
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -439,9 +783,21 @@ export default function Room() {
 
           {/* Player / Content */}
           <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black/50">
+            {isLoadingVideo && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center"
+                >
+                  <Loader2 className="w-12 h-12 animate-spin mx-auto mb-3 text-primary" />
+                  <p className="text-gray-400">Loading video...</p>
+                </motion.div>
+              </div>
+            )}
             {activeMode === 'netflix' ? (
               <ScrollArea className="w-full h-full">
-                <div className="p-8 max-w-5xl mx-auto w-full">
+                <div className="p-4 md:p-8 max-w-5xl mx-auto w-full">
                   <div className="bg-[#141414] border border-[#E50914]/20 rounded-xl overflow-hidden shadow-2xl">
                     <div className="p-6 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#141414] to-[#E50914]/10">
                       <div className="flex items-center gap-3">
@@ -631,72 +987,15 @@ export default function Room() {
           )}
         </div>
 
-        {/* Chat Sidebar */}
-        <div className="w-80 bg-[#11131b] border-l border-white/10 flex flex-col hidden md:flex">
+        {/* Chat Sidebar - Desktop Only */}
+        <div className="w-80 bg-[#11131b] border-l border-white/10 flex-col hidden md:flex">
           <div className="p-4 border-b border-white/10">
             <h2 className="font-display font-medium flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" />
               Chat
             </h2>
           </div>
-
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4">
-              {messages.map((msg) => (
-                <motion.div 
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex flex-col ${msg.isSystem ? 'items-center' : (msg.username === username ? 'items-end' : 'items-start')}`}
-                >
-                  {msg.isSystem ? (
-                    <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded-full my-2">
-                      {msg.message}
-                    </span>
-                  ) : (
-                    <>
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-emerald-400'}`}>
-                          {msg.username}
-                        </span>
-                        <span className="text-[10px] text-gray-600">{msg.timestamp}</span>
-                      </div>
-                      <div 
-                        className={`px-3 py-2 rounded-xl text-sm max-w-[90%] break-words ${
-                          msg.username === username 
-                            ? 'bg-primary text-white rounded-tr-none' 
-                            : 'bg-white/10 text-gray-200 rounded-tl-none'
-                        }`}
-                      >
-                        {msg.message}
-                      </div>
-                    </>
-                  )}
-                </motion.div>
-              ))}
-              <div id="chat-end" />
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t border-white/10 bg-[#141620]">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs text-gray-400">Chatting as:</span>
-              <span className="text-xs font-bold text-emerald-400">{username}</span>
-              {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
-            </div>
-            <form onSubmit={handleSendMessage} className="flex gap-2">
-              <Input 
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Say something..." 
-                className="bg-black/20 border-white/10 focus-visible:ring-primary/50 text-gray-200"
-                data-testid="input-chat"
-              />
-              <Button type="submit" size="icon" variant="ghost" className="hover:bg-primary/20 hover:text-primary" data-testid="button-send-chat">
-                <Send className="w-4 h-4" />
-              </Button>
-            </form>
-          </div>
+          <ChatComponent />
         </div>
       </main>
     </div>

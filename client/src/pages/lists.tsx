@@ -79,7 +79,8 @@ export default function Lists() {
       console.error("Failed to load data:", error);
       toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
     } finally {
-      setLoading(false);
+      // Show loading animation for at least 1.5 seconds
+      setTimeout(() => setLoading(false), 1500);
     }
   };
 

@@ -110,9 +110,5 @@ const inMemoryStorage: IChatStorage = (() => {
     },
   };
 })();
-if (!databaseBackedStorage) {
-  console.warn("No DATABASE_URL configured. Using in-memory chat storage (chat history resets on restart).");
-}
-
 export const chatStorage: IChatStorage = databaseBackedStorage ?? inMemoryStorage;
 

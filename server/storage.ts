@@ -177,10 +177,6 @@ const selectedStorage = (() => {
   if (db) {
     return { storage: new DatabaseStorage(db), isInMemory: false } as const;
   }
-
-  console.warn(
-    "No DATABASE_URL configured. Using in-memory storage for users, watch history, and movie lists (data resets on restart).",
-  );
   return { storage: new InMemoryStorage(), isInMemory: true } as const;
 })();
 

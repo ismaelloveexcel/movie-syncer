@@ -173,12 +173,16 @@ class InMemoryStorage implements IStorage {
   }
 }
 
-const selectedStorage: IStorage = db ? new DatabaseStorage(db) : new InMemoryStorage();
+const selectedStorage = (() => {
+  if (db) {
+    return { storage: new DatabaseStorage(db), isInMemory: false } as const;
+  }
 
-if (!db) {
   console.warn(
     "No DATABASE_URL configured. Using in-memory storage for users, watch history, and movie lists (data resets on restart).",
   );
-}
+  return { storage: new InMemoryStorage(), isInMemory: true } as const;
+})();
 
-export const storage: IStorage = selectedStorage;
+export const storage: IStorage = selectedStorage.storage;
+export const usingInMemoryStorage = selectedStorage.isInMemory;

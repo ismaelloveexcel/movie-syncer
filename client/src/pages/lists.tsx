@@ -257,6 +257,7 @@ export default function Lists() {
             <CardContent className="p-4">
               <div className="flex flex-col md:flex-row gap-3">
                 <Input
+                  id="input-title"
                   placeholder="Movie or show title..."
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
@@ -315,6 +316,14 @@ export default function Lists() {
                   <div className="text-center py-12 text-zinc-500">
                     <Clock className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No movies in your watch list yet</p>
+                    <Button
+                      onClick={() => document.getElementById('input-title')?.focus()}
+                      className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+                      data-testid="button-add-first"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Movie
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-2">

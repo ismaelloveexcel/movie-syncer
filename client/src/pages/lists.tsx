@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,11 +24,19 @@ export default function Lists() {
   const username = useMemo(() => {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || "";
   }, []);
+  const handleUnauthorized = useCallback(() => {
+    toast({
+      variant: "destructive",
+      title: "Access denied",
+      description: "Enter your codename to view the lists.",
+    });
+    setLocation("/");
+  }, [setLocation, toast]);
   
-  const getAuthHeaders = () => ({
+  const getAuthHeaders = useCallback(() => ({
     'Content-Type': 'application/json',
     'x-username': username
-  });
+  }), [username]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("towatch");
   
@@ -42,26 +50,27 @@ export default function Lists() {
   const [showThemes, setShowThemes] = useState(false);
 
   useEffect(() => {
-    loadAllData();
-  }, []);
-
-  useEffect(() => {
     applyTheme(currentTheme);
   }, [currentTheme]);
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     if (!username) {
-      setLocation("/");
+      handleUnauthorized();
       return;
     }
     
     try {
-      const headers = { 'x-username': username };
+      const authHeaders = getAuthHeaders();
       const [favRes, toWatchRes, historyRes] = await Promise.all([
-        fetch('/api/movie-list/favorites', { headers }),
-        fetch('/api/movie-list/towatch', { headers }),
-        fetch('/api/watch-history', { headers })
+        fetch('/api/movie-list/favorites', { headers: authHeaders }),
+        fetch('/api/movie-list/towatch', { headers: authHeaders }),
+        fetch('/api/watch-history', { headers: authHeaders })
       ]);
+
+      if (favRes.status === 401 || toWatchRes.status === 401 || historyRes.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       
       if (favRes.ok) {
         const data = await favRes.json();
@@ -82,7 +91,11 @@ export default function Lists() {
       // Show loading animation for at least 1.5 seconds
       setTimeout(() => setLoading(false), 1500);
     }
-  };
+  }, [getAuthHeaders, handleUnauthorized, toast, username]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   const addToList = async (listType: 'favorites' | 'towatch') => {
     if (!newTitle.trim()) {
@@ -102,6 +115,11 @@ export default function Lists() {
         })
       });
 
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
       if (res.ok) {
         const item = await res.json();
         if (listType === 'favorites') {
@@ -120,7 +138,11 @@ export default function Lists() {
 
   const removeFromList = async (id: string, listType: 'favorites' | 'towatch') => {
     try {
-      await fetch(`/api/movie-list/${id}`, { method: 'DELETE', headers: { 'x-username': username } });
+      const res = await fetch(`/api/movie-list/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       if (listType === 'favorites') {
         setFavorites(prev => prev.filter(m => m.id !== id));
       } else {
@@ -134,11 +156,15 @@ export default function Lists() {
 
   const markAsWatched = async (id: string, rating: string) => {
     try {
-      await fetch(`/api/movie-list/${id}/watched`, {
+      const res = await fetch(`/api/movie-list/${id}/watched`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ rating })
       });
+      if (res.status === 401) {
+        handleUnauthorized();
+        return;
+      }
       setToWatch(prev => prev.filter(m => m.id !== id));
       loadAllData();
       toast({ description: "Marked as watched!" });

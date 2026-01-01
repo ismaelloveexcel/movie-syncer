@@ -3,12 +3,11 @@ import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
 import { storage } from "./storage";
 import { insertWatchHistorySchema, insertMovieListSchema } from "@shared/schema";
-
-const AUTHORIZED_MEMBERS = ['ismael', 'aidan'];
+import { isAuthorizedUser } from "@shared/constants";
 
 function authMiddleware(req: Request, res: Response, next: NextFunction) {
-  const username = req.headers['x-username'] as string;
-  if (!username || !AUTHORIZED_MEMBERS.includes(username.toLowerCase())) {
+  const username = req.headers["x-username"] as string;
+  if (!isAuthorizedUser(username)) {
     return res.status(401).json({ error: 'Unauthorized. Access restricted to The Troublesome Two.' });
   }
   next();
@@ -41,6 +40,14 @@ export async function registerRoutes(
     console.log('User connected:', socket.id);
 
     socket.on('join-room', (roomId: string, username: string) => {
+      if (!isAuthorizedUser(username)) {
+        socket.emit('unauthorized', {
+          message: 'Access restricted to The Troublesome Two.',
+        });
+        socket.disconnect(true);
+        return;
+      }
+
       // Initialize room if it doesn't exist
       if (!rooms.has(roomId)) {
         rooms.set(roomId, {

@@ -20,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useVoiceChat } from "@/hooks/use-voice-chat";
 import { useScreenShare } from "@/hooks/use-screen-share";
 import { STORAGE_KEYS, ADMIN_NAME } from "@/lib/constants";
+import { isAuthorizedUser } from "@shared/constants";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Message = {
@@ -30,6 +31,8 @@ type Message = {
   isSystem?: boolean;
   reaction?: string;
 };
+
+const MAX_MESSAGES = 200;
 
 export default function Room() {
   const [match, params] = useRoute("/room/:id");
@@ -67,13 +70,34 @@ export default function Room() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const soundEnabledRef = useRef(soundEnabled);
+  const mobileChatOpenRef = useRef(isMobileChatOpen);
 
   const username = useMemo(() => {
     return localStorage.getItem(STORAGE_KEYS.USERNAME) || "Guest";
   }, []);
 
   const isAdmin = username.toLowerCase() === ADMIN_NAME.toLowerCase();
-  
+
+  useEffect(() => {
+    if (!username || !isAuthorizedUser(username)) {
+      toast({
+        variant: "destructive",
+        title: "Access denied",
+        description: "Enter your codename to join a room.",
+      });
+      setLocation("/");
+    }
+  }, [setLocation, toast, username]);
+
+  useEffect(() => {
+    soundEnabledRef.current = soundEnabled;
+  }, [soundEnabled]);
+
+  useEffect(() => {
+    mobileChatOpenRef.current = isMobileChatOpen;
+  }, [isMobileChatOpen]);
+
   // Voice chat
   const {
     isMuted,
@@ -96,22 +120,6 @@ export default function Room() {
     stopScreenShare,
   } = useScreenShare(roomId, username);
 
-  // Monitor connection quality
-  useEffect(() => {
-    if (!connected) return;
-
-    const interval = setInterval(() => {
-      // Simple connection quality check based on socket state
-      if (socket.connected) {
-        setConnectionQuality('good');
-      } else {
-        setConnectionQuality('poor');
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [connected]);
-
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -127,13 +135,87 @@ export default function Room() {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [isVoiceActive, isMuted, toggleMute, toast]);
 
+  const addMessage = useCallback((msg: Omit<Message, 'id'>) => {
+    setMessages(prev => {
+      const next = [
+        ...prev,
+        {
+          ...msg,
+          id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        },
+      ];
+
+      return next.length > MAX_MESSAGES
+        ? next.slice(next.length - MAX_MESSAGES)
+        : next;
+    });
+  }, []);
+
+  const addSystemMessage = useCallback((text: string) => {
+    addMessage({
+      username: 'System',
+      message: text,
+      timestamp: new Date().toLocaleTimeString(),
+      isSystem: true
+    });
+  }, [addMessage]);
+
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabledRef.current) return;
+
+    try {
+      // Reuse existing AudioContext or create new one
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      
+      const audioContext = audioContextRef.current;
+      
+      // Resume if suspended (browser autoplay policy)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = 880; // A5 note
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (e) {
+      // Audio context might not be available
+    }
+  }, []);
+
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !username || !isAuthorizedUser(username)) return;
 
     connectSocket();
 
+    const handleDisconnect = () => {
+      setConnected(false);
+      setConnectionQuality('poor');
+    };
+
+    const handleUnauthorized = (payload?: { message?: string }) => {
+      toast({
+        variant: "destructive",
+        title: "Access denied",
+        description: payload?.message ?? "Enter your codename to join a room.",
+      });
+      setLocation("/");
+    };
+
     socket.on('connect', () => {
       setConnected(true);
+      setConnectionQuality('good');
       socket.emit('join-room', roomId, username);
       toast({
         title: "🎬 Connected!",
@@ -141,6 +223,15 @@ export default function Room() {
         duration: 3000
       });
     });
+
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleDisconnect);
+    socket.on('reconnect_attempt', () => setConnectionQuality('fair'));
+    socket.on('reconnect', () => {
+      setConnected(true);
+      setConnectionQuality('good');
+    });
+    socket.on('unauthorized', handleUnauthorized);
 
     socket.on('room-state', (state: any) => {
       setUsers(state.users);
@@ -163,11 +254,11 @@ export default function Room() {
     socket.on('receive-chat', (data: any) => {
       addMessage(data);
       // Play notification sound for new messages
-      if (soundEnabled) {
+      if (soundEnabledRef.current) {
         playNotificationSound();
       }
       // Increment unread if chat is closed on mobile
-      if (!isMobileChatOpen && window.innerWidth < 768) {
+      if (!mobileChatOpenRef.current && window.innerWidth < 768) {
         setUnreadCount(prev => prev + 1);
       }
     });
@@ -235,6 +326,11 @@ export default function Room() {
 
     return () => {
       socket.off('connect');
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleDisconnect);
+      socket.off('reconnect_attempt');
+      socket.off('reconnect');
+      socket.off('unauthorized', handleUnauthorized);
       socket.off('room-state');
       socket.off('user-joined');
       socket.off('user-left');
@@ -248,40 +344,28 @@ export default function Room() {
       socket.off('netflix-sync-command');
       socket.disconnect();
     };
-  }, [roomId]);
+  }, [roomId, username, toast, addSystemMessage, addMessage, playNotificationSound, setLocation]);
 
   useEffect(() => {
     const el = document.getElementById('chat-end');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const addMessage = (msg: Omit<Message, 'id'>) => {
-    setMessages(prev => [...prev, { ...msg, id: Math.random().toString() }]);
-  };
-
-  const addSystemMessage = (text: string) => {
-    addMessage({
-      username: 'System',
-      message: text,
-      timestamp: new Date().toLocaleTimeString(),
-      isSystem: true
-    });
-  };
-
   const handleSendMessage = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim()) return;
+    const messageText = inputValue.trim();
+    if (!messageText) return;
 
     const msg = {
-      message: inputValue,
+      message: messageText,
       username: username,
       timestamp: new Date().toLocaleTimeString()
     };
 
     addMessage(msg);
-    socket.emit('send-chat', roomId, inputValue, username);
+    socket.emit('send-chat', roomId, messageText, username);
     setInputValue("");
-  }, [inputValue, username, roomId]);
+  }, [addMessage, inputValue, roomId, username]);
 
   // Typing indicator
   const handleInputChange = (value: string) => {
@@ -317,41 +401,6 @@ export default function Room() {
     });
   };
 
-  // Play notification sound for new messages
-  const playNotificationSound = useCallback(() => {
-    if (!soundEnabled) return;
-    
-    try {
-      // Reuse existing AudioContext or create new one
-      if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      
-      const audioContext = audioContextRef.current;
-      
-      // Resume if suspended (browser autoplay policy)
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-      
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.value = 880; // A5 note
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.2);
-    } catch (e) {
-      // Audio context might not be available
-    }
-  }, [soundEnabled]);
-
   // Toggle sound notifications
   const toggleSound = () => {
     const newValue = !soundEnabled;
@@ -362,6 +411,15 @@ export default function Room() {
       duration: 2000
     });
   };
+
+  useEffect(() => {
+    return () => {
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+      }
+    };
+  }, []);
 
   // Send nudge to get partner's attention
   const sendNudge = () => {

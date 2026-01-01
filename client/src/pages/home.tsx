@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Copy, ArrowRight, Shield, Clock, Trash2, Share2, ExternalLink, Film, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { PageTransition } from "@/components/loading-screen";
+import { PageTransition, LoadingScreen } from "@/components/loading-screen";
+import { isAuthorizedUser } from "@shared/constants";
 
-const MEMBERS = ["Ismael", "Aidan"];
 const RECENT_ROOMS_KEY = "recent-rooms";
 
 type RecentRoom = {
@@ -22,6 +22,7 @@ export default function Home() {
   const [username, setUsername] = useState<string>("");
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [recentRooms, setRecentRooms] = useState<RecentRoom[]>([]);
+  const [isJoining, setIsJoining] = useState(false);
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -32,7 +33,7 @@ export default function Home() {
     const savedName = localStorage.getItem(STORAGE_KEYS.USERNAME);
     if (savedName) {
       setUsername(savedName);
-      if (MEMBERS.some(m => m.toLowerCase() === savedName.toLowerCase())) {
+      if (isAuthorizedUser(savedName)) {
         setIsUnlocked(true);
       }
     }
@@ -50,7 +51,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (MEMBERS.some(m => m.toLowerCase() === username.toLowerCase())) {
+    if (isAuthorizedUser(username)) {
       setIsUnlocked(true);
     }
   }, [username]);
@@ -137,7 +138,12 @@ export default function Home() {
     rooms = rooms.slice(0, 5);
 
     localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(rooms));
-    setLocation(`/room/${id}`);
+    
+    // Show loading screen before navigating
+    setIsJoining(true);
+    setTimeout(() => {
+      setLocation(`/room/${id}`);
+    }, 1500);
   };
 
   const clearRecentRooms = () => {
@@ -159,7 +165,11 @@ export default function Home() {
     return `${days}d ago`;
   };
 
-  const isKnownMember = MEMBERS.some(m => m.toLowerCase() === username.toLowerCase());
+  const isKnownMember = isAuthorizedUser(username);
+
+  if (isJoining) {
+    return <LoadingScreen message="Entering Session..." />;
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-3 bg-[#0a0a0a]">

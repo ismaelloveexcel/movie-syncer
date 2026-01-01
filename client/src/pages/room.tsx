@@ -564,7 +564,7 @@ export default function Room() {
               ) : (
                 <>
                   <div className="flex items-baseline gap-2 mb-1">
-                    <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-emerald-400'}`}>
+                    <span className={`text-xs font-bold ${msg.username === username ? 'text-primary' : 'text-teal-400'}`}>
                       {msg.username}
                     </span>
                     <span className="text-[10px] text-gray-600">{msg.timestamp}</span>
@@ -664,8 +664,8 @@ export default function Room() {
 
         <div className="flex items-center gap-2 mb-2">
           <span className="text-xs text-gray-400">Chatting as:</span>
-          <span className="text-xs font-bold text-emerald-400">{username}</span>
-          {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-yellow-500/20 text-yellow-400 border-yellow-500/50">Admin</Badge>}
+          <span className="text-xs font-bold text-teal-400">{username}</span>
+          {isAdmin && <Badge className="text-[10px] py-0 px-1 bg-amber-500/20 text-amber-400 border-amber-500/50">Admin</Badge>}
         </div>
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
@@ -718,16 +718,16 @@ export default function Room() {
       transition={{ duration: 0.5 }}
     >
       {/* Header */}
-      <header className="h-16 border-b border-green-500/20 glass flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
+      <header className="h-16 border-b border-teal-500/20 glass flex items-center justify-between px-3 md:px-6 sticky top-0 z-50">
         <div className="flex items-center gap-2 md:gap-3">
           <motion.div
-            className="bg-gradient-to-br from-green-500 to-emerald-500 p-2 rounded-lg"
+            className="bg-gradient-to-br from-teal-500 via-purple-500 to-pink-500 p-2 rounded-lg shadow-lg"
             animate={{ rotate: [0, 5, -5, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
           >
             <Shield className="w-4 h-4 md:w-5 md:h-5 text-white" />
           </motion.div>
-          <h1 className="font-display font-bold text-base md:text-lg hidden sm:block bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="font-display font-bold text-base md:text-lg hidden sm:block bg-gradient-to-r from-teal-300 via-purple-300 to-pink-300 bg-clip-text text-transparent">
             The Troublesome Two
           </h1>
           {isAdmin && (
@@ -746,12 +746,12 @@ export default function Room() {
         <div className="flex items-center gap-2 md:gap-4">
           {/* Room Code with Copy/Share */}
           <div className="hidden sm:flex items-center gap-1 bg-white/5 px-2 py-1 rounded-full border border-white/5">
-            <span className="text-xs font-mono text-green-400 font-bold">{roomId}</span>
+            <span className="text-xs font-mono text-teal-300 font-bold">{roomId}</span>
             <Button
               variant="ghost"
               size="icon"
               onClick={copyRoomCode}
-              className="h-6 w-6 text-gray-500 hover:text-green-400"
+              className="h-6 w-6 text-gray-500 hover:text-teal-400"
               aria-label="Copy room code"
             >
               <Copy className="w-3 h-3" />
@@ -760,7 +760,7 @@ export default function Room() {
               variant="ghost"
               size="icon"
               onClick={shareRoomLink}
-              className="h-6 w-6 text-gray-500 hover:text-green-400"
+              className="h-6 w-6 text-gray-500 hover:text-teal-400"
               aria-label="Share room link"
             >
               <Share2 className="w-3 h-3" />
@@ -771,7 +771,7 @@ export default function Room() {
           <Badge
             variant="outline"
             className={`hidden lg:flex items-center gap-1 ${
-              connectionQuality === 'good' ? 'border-green-500/50 text-green-400 bg-green-500/10' :
+              connectionQuality === 'good' ? 'border-teal-500/50 text-teal-400 bg-teal-500/10' :
               connectionQuality === 'fair' ? 'border-yellow-500/50 text-yellow-400 bg-yellow-500/10' :
               'border-red-500/50 text-red-400 bg-red-500/10'
             }`}
@@ -785,7 +785,7 @@ export default function Room() {
             variant="ghost"
             size="icon"
             onClick={toggleSound}
-            className={`h-8 w-8 rounded-full ${soundEnabled ? 'text-green-400 hover:bg-green-500/10' : 'text-gray-500 hover:bg-gray-500/10'}`}
+            className={`h-8 w-8 rounded-full ${soundEnabled ? 'text-teal-400 hover:bg-teal-500/10' : 'text-gray-500 hover:bg-gray-500/10'}`}
             aria-label={soundEnabled ? "Disable sound notifications" : "Enable sound notifications"}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -796,7 +796,7 @@ export default function Room() {
             variant="ghost"
             size="icon"
             onClick={sendNudge}
-            className="h-8 w-8 rounded-full text-yellow-400 hover:bg-yellow-500/10"
+            className="h-8 w-8 rounded-full text-amber-400 hover:bg-amber-500/10"
             aria-label="Send nudge to get attention"
           >
             <Bell className="w-4 h-4" />
@@ -840,7 +840,7 @@ export default function Room() {
                   variant="ghost"
                   size="icon"
                   onClick={toggleMute}
-                  className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}
+                  className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-teal-500/20 text-teal-400 hover:bg-teal-500/30'}`}
                   data-testid="button-toggle-mute"
                   aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
                 >
@@ -863,7 +863,7 @@ export default function Room() {
                 variant="ghost"
                 size="sm"
                 onClick={startVoice}
-                className="text-green-400 hover:text-green-300 hover:bg-green-500/10"
+                className="text-teal-400 hover:text-teal-300 hover:bg-teal-500/10"
                 data-testid="button-start-voice"
                 aria-label="Start voice chat"
               >

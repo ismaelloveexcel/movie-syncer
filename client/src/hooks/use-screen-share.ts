@@ -27,7 +27,24 @@ export function useScreenShare(roomId: string, username: string) {
       }
     };
 
+    pc.onicecandidateerror = (event) => {
+      console.warn('ICE candidate error:', event);
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', pc.iceConnectionState);
+      if (pc.iceConnectionState === 'failed') {
+        toast({
+          variant: "destructive",
+          title: "Connection Issue",
+          description: "Screen share connection failed. Please try again.",
+          duration: 5000
+        });
+      }
+    };
+
     pc.ontrack = (event) => {
+      console.log('Received remote track:', event.track.kind);
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = event.streams[0];
       }
@@ -35,14 +52,39 @@ export function useScreenShare(roomId: string, username: string) {
     };
 
     pc.onconnectionstatechange = () => {
+      console.log('Connection state:', pc.connectionState);
       if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        stopViewing();
+        // Close the peer connection and reset state
+        if (peerConnectionRef.current) {
+          peerConnectionRef.current.close();
+          peerConnectionRef.current = null;
+        }
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = null;
+        }
+        setIsViewing(false);
+        setSharerName(null);
+        
+        if (pc.connectionState === 'failed') {
+          toast({
+            variant: "destructive",
+            title: "Screen Share Failed",
+            description: "Could not establish connection. Try again or check your network.",
+            duration: 5000
+          });
+        }
+      } else if (pc.connectionState === 'connected') {
+        toast({
+          title: "Screen Share Connected",
+          description: "You are now viewing the shared screen.",
+          duration: 3000
+        });
       }
     };
 
     peerConnectionRef.current = pc;
     return pc;
-  }, [roomId, username]);
+  }, [roomId, username, toast]);
 
   const startScreenShare = useCallback(async () => {
     try {

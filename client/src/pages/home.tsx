@@ -172,16 +172,16 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-3 bg-[#0a0a0a]">
+    <div className="min-h-screen w-full flex items-center justify-center p-3 bg-animated-gradient">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-[340px]"
       >
         {/* Access Pass Card */}
-        <div className="relative bg-gradient-to-b from-[#111] to-[#0a0a0a] rounded-2xl border border-green-500/30 overflow-hidden shadow-2xl">
+        <div className="relative bg-gradient-to-b from-[#1a1525] to-[#0f0a15] rounded-2xl border border-teal-500/30 overflow-hidden shadow-2xl glow-teal">
           {/* Top accent bar */}
-          <div className="h-1 bg-gradient-to-r from-green-600 via-green-400 to-green-600" />
+          <div className="h-1.5 bg-gradient-to-r from-teal-500 via-purple-500 to-pink-500" />
           
           {/* Header */}
           <div className="px-5 pt-4 pb-3 border-b border-white/10 text-center">
@@ -190,17 +190,17 @@ export default function Home() {
                 animate={{ rotate: [0, 360] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <Shield className="w-4 h-4 text-green-500" />
+                <Shield className="w-4 h-4 text-teal-400" />
               </motion.div>
-              <span className="text-[10px] font-mono text-green-500 tracking-[0.3em] uppercase">Access Pass</span>
+              <span className="text-[10px] font-mono text-teal-400 tracking-[0.3em] uppercase">Access Pass</span>
               <motion.div
                 animate={{ rotate: [0, -360] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               >
-                <Shield className="w-4 h-4 text-green-500" />
+                <Shield className="w-4 h-4 text-teal-400" />
               </motion.div>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">THE TROUBLESOME TWO</h1>
+            <h1 className="text-2xl font-black bg-gradient-to-r from-teal-300 via-purple-300 to-pink-300 bg-clip-text text-transparent tracking-tight">THE TROUBLESOME TWO</h1>
             <p className="text-[10px] text-gray-500 font-mono mt-1">PRIVATE MOVIE SYNC NETWORK</p>
           </div>
 
@@ -210,27 +210,27 @@ export default function Home() {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 rounded-full border border-green-500/40"
+                className="absolute inset-0 rounded-full border border-teal-500/40"
               />
-              <div className="absolute inset-2 rounded-full bg-black border border-green-500/60 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-2 rounded-full bg-black border border-teal-500/60 flex items-center justify-center overflow-hidden">
                 <motion.div
                   animate={{ y: [-30, 30, -30] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-x-0 h-4 bg-gradient-to-b from-transparent via-green-500/40 to-transparent"
+                  className="absolute inset-x-0 h-4 bg-gradient-to-b from-transparent via-teal-500/40 to-transparent"
                 />
                 <motion.div
                   animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="text-green-500 font-bold text-lg font-mono"
+                  className="text-teal-400 font-bold text-lg font-mono"
                 >
                   TT
                 </motion.div>
               </div>
               {/* Corner brackets */}
-              <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-green-500" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-green-500" />
-              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-green-500" />
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-green-500" />
+              <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-teal-400" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-purple-400" />
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-purple-400" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-pink-400" />
             </div>
           </div>
 
@@ -243,7 +243,7 @@ export default function Home() {
                 placeholder="Enter your codename (e.g., Ismael)" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="bg-black/50 border-white/10 focus:border-green-500/50 text-white text-sm h-9 font-mono"
+                className="bg-black/50 border-white/10 focus:border-teal-500/50 text-white text-sm h-9 font-mono"
                 data-testid="input-username"
                 aria-label="Enter your agent name"
               />
@@ -251,9 +251,9 @@ export default function Home() {
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-[10px] text-green-500 mt-1 font-mono flex items-center gap-1"
+                  className="text-[10px] text-teal-400 mt-1 font-mono flex items-center gap-1"
                 >
-                  <span className="w-1 h-1 rounded-full bg-green-500" /> VERIFIED AGENT
+                  <span className="w-1 h-1 rounded-full bg-teal-400" /> VERIFIED AGENT
                 </motion.p>
               )}
             </div>
@@ -270,14 +270,14 @@ export default function Home() {
                   <div>
                     <label className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1 block">Session Code</label>
                     <div className="flex items-center bg-black/50 rounded border border-white/10">
-                      <div className="flex-1 font-mono text-sm font-bold text-center text-green-400 py-2 tracking-widest">
+                      <div className="flex-1 font-mono text-sm font-bold text-center text-teal-300 py-2 tracking-widest">
                         {roomId}
                       </div>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         onClick={copyRoomId}
-                        className="h-8 w-8 text-gray-500 hover:text-green-400"
+                        className="h-8 w-8 text-gray-500 hover:text-teal-400"
                         aria-label="Copy room code"
                       >
                         <Copy className="w-3.5 h-3.5" />
@@ -286,7 +286,7 @@ export default function Home() {
                         variant="ghost" 
                         size="icon" 
                         onClick={shareRoom}
-                        className="h-8 w-8 text-gray-500 hover:text-green-400"
+                        className="h-8 w-8 text-gray-500 hover:text-teal-400"
                         aria-label="Share room link"
                       >
                         <Share2 className="w-3.5 h-3.5" />
@@ -295,7 +295,7 @@ export default function Home() {
                   </div>
 
                   <Button 
-                    className="w-full bg-green-600 hover:bg-green-500 text-white font-mono text-sm h-9"
+                    className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 text-white font-mono text-sm h-9 shadow-lg shadow-teal-500/20"
                     onClick={() => handleJoin(roomId)}
                   >
                     CREATE SESSION
@@ -312,13 +312,13 @@ export default function Home() {
                       placeholder="Enter code..."
                       value={joinId}
                       onChange={(e) => setJoinId(e.target.value.toUpperCase())}
-                      className="bg-black/50 border-white/10 focus:border-green-500/50 text-white text-sm h-9 font-mono uppercase"
+                      className="bg-black/50 border-white/10 focus:border-teal-500/50 text-white text-sm h-9 font-mono uppercase"
                       aria-label="Room code input"
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-9 w-9 border-white/10 hover:bg-green-500/10 hover:text-green-400"
+                      className="h-9 w-9 border-white/10 hover:bg-teal-500/10 hover:text-teal-400 hover:border-teal-500/30"
                       onClick={() => handleJoin(joinId)}
                       disabled={!joinId}
                       aria-label="Join room"
@@ -352,9 +352,9 @@ export default function Home() {
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             onClick={() => handleJoin(room.id)}
-                            className="w-full flex items-center justify-between bg-black/30 hover:bg-black/50 border border-white/5 hover:border-green-500/30 rounded px-3 py-2 transition-all group"
+                            className="w-full flex items-center justify-between bg-black/30 hover:bg-black/50 border border-white/5 hover:border-teal-500/30 rounded px-3 py-2 transition-all group"
                           >
-                            <span className="font-mono text-xs text-green-400 font-bold tracking-wider">
+                            <span className="font-mono text-xs text-teal-300 font-bold tracking-wider">
                               {room.id}
                             </span>
                             <span className="text-[9px] text-gray-600 group-hover:text-gray-500">
@@ -381,13 +381,13 @@ export default function Home() {
             <div className="px-5 py-3 border-t border-white/5">
               <Button
                 variant="ghost"
-                className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-green-400 hover:bg-green-500/10 h-8 text-xs font-mono"
+                className="w-full flex items-center justify-center gap-2 text-gray-400 hover:text-teal-400 hover:bg-teal-500/10 h-8 text-xs font-mono"
                 onClick={() => setLocation("/lists")}
                 data-testid="button-movie-lists"
               >
                 <Film className="w-3.5 h-3.5" />
                 <span>MOVIE LISTS</span>
-                <Heart className="w-3 h-3" />
+                <Heart className="w-3 h-3 text-pink-400" />
               </Button>
             </div>
           )}
@@ -399,9 +399,9 @@ export default function Home() {
               <motion.span 
                 animate={{ opacity: [0.3, 1, 0.3] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
-                className="w-1.5 h-1.5 rounded-full bg-green-500"
+                className="w-1.5 h-1.5 rounded-full bg-teal-400"
               />
-              <span className="text-[8px] text-green-500 font-mono">ONLINE</span>
+              <span className="text-[8px] text-teal-400 font-mono">ONLINE</span>
             </div>
           </div>
         </div>

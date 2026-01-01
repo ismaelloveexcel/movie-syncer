@@ -123,6 +123,20 @@ export async function registerRoutes(
       });
     });
 
+    // Nudge - get partner's attention
+    socket.on('send-nudge', (roomId: string, username: string) => {
+      socket.to(roomId).emit('receive-nudge', username);
+    });
+
+    // Typing indicator
+    socket.on('user-typing', (roomId: string, username: string) => {
+      socket.to(roomId).emit('user-typing', username);
+    });
+
+    socket.on('user-stopped-typing', (roomId: string, username: string) => {
+      socket.to(roomId).emit('user-stopped-typing', username);
+    });
+
     // Netflix sync events
     socket.on('netflix-countdown-tick', (roomId: string, count: number) => {
       socket.to(roomId).emit('netflix-countdown-tick', count);

@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Copy, ArrowRight, Shield, Clock, Trash2 } from "lucide-react";
+import { Copy, ArrowRight, Shield, Clock, Trash2, Share2, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -54,12 +54,55 @@ export default function Home() {
     }
   }, [username]);
 
-  const copyRoomId = () => {
-    navigator.clipboard.writeText(roomId);
-    toast({
-      title: "Code Copied!",
-      description: "Share with your partner",
-    });
+  const copyRoomId = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId);
+      toast({
+        title: "Code Copied!",
+        description: "Share with your partner",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
+  };
+
+  const shareRoom = async () => {
+    const roomUrl = `${window.location.origin}/room/${roomId}`;
+    
+    // Try native share API first (mobile-friendly)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'The Troublesome Two - Movie Session',
+          text: `Join my movie session! Room code: ${roomId}`,
+          url: roomUrl,
+        });
+        toast({
+          title: "Shared!",
+          description: "Invite sent successfully",
+        });
+        return;
+      } catch (err) {
+        // User cancelled or share failed, fall back to clipboard
+      }
+    }
+    
+    // Fallback: copy full URL to clipboard
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      toast({
+        title: "Link Copied!",
+        description: "Full room URL copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        description: "Failed to copy to clipboard",
+      });
+    }
   };
 
   const handleJoin = (id: string) => {
@@ -186,11 +229,12 @@ export default function Home() {
             <div>
               <label className="text-[10px] text-gray-500 font-mono uppercase tracking-wider mb-1 block">Agent Name</label>
               <Input 
-                placeholder="Enter your name" 
+                placeholder="Enter your codename (e.g., Ismael)" 
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="bg-black/50 border-white/10 focus:border-green-500/50 text-white text-sm h-9 font-mono"
                 data-testid="input-username"
+                aria-label="Enter your agent name"
               />
               {isKnownMember && (
                 <motion.p
@@ -198,7 +242,7 @@ export default function Home() {
                   animate={{ opacity: 1 }}
                   className="text-[10px] text-green-500 mt-1 font-mono flex items-center gap-1"
                 >
-                  <span className="w-1 h-1 rounded-full bg-green-500" /> VERIFIED
+                  <span className="w-1 h-1 rounded-full bg-green-500" /> VERIFIED AGENT
                 </motion.p>
               )}
             </div>
@@ -223,8 +267,18 @@ export default function Home() {
                         size="icon" 
                         onClick={copyRoomId}
                         className="h-8 w-8 text-gray-500 hover:text-green-400"
+                        aria-label="Copy room code"
                       >
                         <Copy className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={shareRoom}
+                        className="h-8 w-8 text-gray-500 hover:text-green-400"
+                        aria-label="Share room link"
+                      >
+                        <Share2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>

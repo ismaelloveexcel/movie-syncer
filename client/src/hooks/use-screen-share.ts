@@ -34,13 +34,11 @@ export function useScreenShare(roomId: string, username: string) {
     pc.oniceconnectionstatechange = () => {
       console.log('ICE connection state:', pc.iceConnectionState);
       if (pc.iceConnectionState === 'failed') {
-        // Try to restart ICE if it fails
-        pc.restartIce();
         toast({
           variant: "destructive",
           title: "Connection Issue",
-          description: "Trying to reconnect screen share...",
-          duration: 3000
+          description: "Screen share connection failed. Please try again.",
+          duration: 5000
         });
       }
     };
@@ -56,7 +54,17 @@ export function useScreenShare(roomId: string, username: string) {
     pc.onconnectionstatechange = () => {
       console.log('Connection state:', pc.connectionState);
       if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        stopViewing();
+        // Close the peer connection and reset state
+        if (peerConnectionRef.current) {
+          peerConnectionRef.current.close();
+          peerConnectionRef.current = null;
+        }
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = null;
+        }
+        setIsViewing(false);
+        setSharerName(null);
+        
         if (pc.connectionState === 'failed') {
           toast({
             variant: "destructive",
@@ -76,7 +84,7 @@ export function useScreenShare(roomId: string, username: string) {
 
     peerConnectionRef.current = pc;
     return pc;
-  }, [roomId, username, toast, stopViewing]);
+  }, [roomId, username, toast]);
 
   const startScreenShare = useCallback(async () => {
     try {

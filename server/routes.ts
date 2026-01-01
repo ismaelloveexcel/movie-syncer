@@ -1,8 +1,18 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { Server as SocketServer } from "socket.io";
 import { storage } from "./storage";
 import { insertWatchHistorySchema, insertMovieListSchema } from "@shared/schema";
+
+const AUTHORIZED_MEMBERS = ['ismael', 'aidan'];
+
+function authMiddleware(req: Request, res: Response, next: NextFunction) {
+  const username = req.headers['x-username'] as string;
+  if (!username || !AUTHORIZED_MEMBERS.includes(username.toLowerCase())) {
+    return res.status(401).json({ error: 'Unauthorized. Access restricted to The Troublesome Two.' });
+  }
+  next();
+}
 
 interface RoomState {
   users: { id: string; username: string }[];
@@ -216,8 +226,8 @@ export async function registerRoutes(
     });
   });
 
-  // Watch History API
-  app.get('/api/watch-history', async (req, res) => {
+  // Watch History API (protected)
+  app.get('/api/watch-history', authMiddleware, async (req, res) => {
     try {
       const history = await storage.getWatchHistory();
       res.json(history);
@@ -226,7 +236,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/watch-history', async (req, res) => {
+  app.post('/api/watch-history', authMiddleware, async (req, res) => {
     try {
       const data = insertWatchHistorySchema.parse(req.body);
       const entry = await storage.addWatchHistory(data);
@@ -236,8 +246,8 @@ export async function registerRoutes(
     }
   });
 
-  // Movie Lists API (favorites and to-watch)
-  app.get('/api/movie-list/:type', async (req, res) => {
+  // Movie Lists API (protected)
+  app.get('/api/movie-list/:type', authMiddleware, async (req, res) => {
     try {
       const { type } = req.params;
       if (type !== 'favorites' && type !== 'towatch') {
@@ -250,7 +260,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/movie-list', async (req, res) => {
+  app.post('/api/movie-list', authMiddleware, async (req, res) => {
     try {
       const data = insertMovieListSchema.parse(req.body);
       const entry = await storage.addToMovieList(data);
@@ -260,7 +270,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete('/api/movie-list/:id', async (req, res) => {
+  app.delete('/api/movie-list/:id', authMiddleware, async (req, res) => {
     try {
       await storage.removeFromMovieList(req.params.id);
       res.json({ success: true });
@@ -269,7 +279,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post('/api/movie-list/:id/watched', async (req, res) => {
+  app.post('/api/movie-list/:id/watched', authMiddleware, async (req, res) => {
     try {
       const { rating } = req.body;
       const validRatings = ['loved', 'liked', 'ok', null, undefined];

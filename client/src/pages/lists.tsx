@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,21 @@ import {
   Film, Tv, Star, ThumbsUp, Meh, ExternalLink, Palette 
 } from "lucide-react";
 import { themes, type ThemeId, getStoredTheme, applyTheme } from "@/lib/themes";
+import { STORAGE_KEYS } from "@/lib/constants";
 import type { WatchHistory, MovieListItem } from "@shared/schema";
 
 export default function Lists() {
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  const username = useMemo(() => {
+    return localStorage.getItem(STORAGE_KEYS.USERNAME) || "";
+  }, []);
+  
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    'x-username': username
+  });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("towatch");
   
@@ -40,11 +50,17 @@ export default function Lists() {
   }, [currentTheme]);
 
   const loadAllData = async () => {
+    if (!username) {
+      setLocation("/");
+      return;
+    }
+    
     try {
+      const headers = { 'x-username': username };
       const [favRes, toWatchRes, historyRes] = await Promise.all([
-        fetch('/api/movie-list/favorites'),
-        fetch('/api/movie-list/towatch'),
-        fetch('/api/watch-history')
+        fetch('/api/movie-list/favorites', { headers }),
+        fetch('/api/movie-list/towatch', { headers }),
+        fetch('/api/watch-history', { headers })
       ]);
       
       if (favRes.ok) {
@@ -76,7 +92,7 @@ export default function Lists() {
     try {
       const res = await fetch('/api/movie-list', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ 
           title: newTitle, 
           url: newUrl || null, 
@@ -103,7 +119,7 @@ export default function Lists() {
 
   const removeFromList = async (id: string, listType: 'favorites' | 'towatch') => {
     try {
-      await fetch(`/api/movie-list/${id}`, { method: 'DELETE' });
+      await fetch(`/api/movie-list/${id}`, { method: 'DELETE', headers: { 'x-username': username } });
       if (listType === 'favorites') {
         setFavorites(prev => prev.filter(m => m.id !== id));
       } else {
@@ -119,7 +135,7 @@ export default function Lists() {
     try {
       await fetch(`/api/movie-list/${id}/watched`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ rating })
       });
       setToWatch(prev => prev.filter(m => m.id !== id));

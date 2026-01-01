@@ -2,9 +2,19 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set");
+// Optional database connection. In personal environments where DATABASE_URL
+// isn't configured (or is misconfigured), we fall back to an in-memory store
+// instead of crashing the whole server on startup.
+function createDatabase() {
+  if (!process.env.DATABASE_URL) return null;
+
+  try {
+    return drizzle(postgres(process.env.DATABASE_URL), { schema });
+  } catch (error) {
+    console.warn("Failed to initialize database client. Falling back to in-memory storage.");
+    console.error(error);
+    return null;
+  }
 }
 
-const client = postgres(process.env.DATABASE_URL);
-export const db = drizzle(client, { schema });
+export const db = createDatabase();
